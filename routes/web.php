@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BukuController;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
@@ -31,5 +32,15 @@ Route::middleware('auth')->group(function () {
     })->name('anggota.dashboard');
 
     // Proses Keluar Aplikasi
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Route Utama: Katalog Buku
+    Route::get('/katalog', [BukuController::class, 'index'])->name('katalog');
+    
+    // Route Action (Untuk Modal Tambah/Edit/Hapus Buku nanti)
+    Route::post('/katalog/store', [BukuController::class, 'store'])->name('katalog.store');
+    Route::put('/katalog/update/{id}', [BukuController::class, 'update'])->name('katalog.update');
+    Route::delete('/katalog/delete/{id}', [BukuController::class, 'destroy'])->name('katalog.delete');
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
