@@ -15,7 +15,7 @@
     </div>
 
     <div class="custom-card mb-4">
-        <form action="{{ route('katalog') }}" method="GET" class="row g-3">
+        <form action="{{ route('admin.katalog') }}" method="GET" class="row g-3">
             <div class="col-md-5">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
@@ -32,7 +32,7 @@
             </div>
             <div class="col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100 fw-semibold" style="border-radius: 10px;">Filter</button>
-                <a href="{{ route('katalog') }}" class="btn btn-outline-secondary w-100 fw-semibold" style="border-radius: 10px;">Reset</a>
+                <a href="{{ route('admin.katalog') }}" class="btn btn-outline-secondary w-100 fw-semibold" style="border-radius: 10px;">Reset</a>
             </div>
         </form>
     </div>
@@ -101,7 +101,7 @@
                 <h5 class="modal-title fw-bold"><i class="bi bi-journal-plus text-warning me-2"></i> Tambah Koleksi Buku</h5>
                 <button type="button" class="btn-close" data-bs-close="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('katalog.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.katalog.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body px-4">
                     <div class="row g-3">

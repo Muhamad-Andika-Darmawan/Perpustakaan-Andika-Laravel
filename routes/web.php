@@ -35,12 +35,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Route Utama: Katalog Buku
-    Route::get('/katalog', [BukuController::class, 'index'])->name('katalog');
+    Route::get('/admin/katalog', [BukuController::class, 'index'])->name('admin.katalog');
     
     // Route Action (Untuk Modal Tambah/Edit/Hapus Buku nanti)
-    Route::post('/katalog/store', [BukuController::class, 'store'])->name('katalog.store');
-    Route::put('/katalog/update/{id}', [BukuController::class, 'update'])->name('katalog.update');
-    Route::delete('/katalog/delete/{id}', [BukuController::class, 'destroy'])->name('katalog.delete');
-
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/admin/katalog/store', [BukuController::class, 'store'])->name('admin.katalog.store');
+    Route::put('/admin/katalog/update/{id}', [BukuController::class, 'update'])->name('admin.katalog.update');
+    Route::delete('/admin/katalog/delete/{id}', [BukuController::class, 'destroy'])->name('admin.katalog.delete');
 });

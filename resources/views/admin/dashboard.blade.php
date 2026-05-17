@@ -83,7 +83,7 @@
             <div class="custom-card">
                 <h5 class="fw-bold mb-4">Aksi Cepat</h5>
                 
-                <a href="{{ route('katalog') }}" class="text-decoration-none text-dark">
+                <a href="{{ route('admin.katalog') }}" class="text-decoration-none text-dark">
                     <div class="quick-item d-flex align-items-center">
                         <div class="stat-icon bg-warning bg-opacity-10 text-warning mb-0 me-3" style="width:40px; height:40px;">
                             <i class="bi bi-book-half" style="font-size: 16px;"></i>

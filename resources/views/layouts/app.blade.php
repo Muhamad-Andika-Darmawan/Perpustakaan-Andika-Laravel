@@ -109,7 +109,9 @@
         <a class="nav-link {{ Route::is('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-        <a class="nav-link" href="#"><i class="bi bi-book"></i> Katalog Buku</a>
+        <a class="nav-link {{ Route::is('admin.katalog') ? 'active' : '' }}" href="{{ route('admin.katalog') }}">
+            <i class="bi bi-book"></i> Katalog Buku
+        </a>
         <a class="nav-link" href="#"><i class="bi bi-people"></i> Data Anggota</a>
 
         <div class="menu-section">TRANSAKSI</div>

@@ -13,7 +13,7 @@ class BukuController extends Controller
         $kategori_filter = $request->input('kategori');
 
         // Query dasar mengambil data buku dan join dengan kategori jika ada
-        $query = DB::table('buku'); 
+        $query = DB::table('bukus'); 
 
         // Logika Fitur Search (Judul, Penulis, Penerbit)
         if ($search) {
@@ -33,7 +33,7 @@ class BukuController extends Controller
         $buku = $query->paginate(10)->withQueryString();
 
         // Ambil list semua kategori untuk isi dropdown filter & modal select
-        $categories = DB::table('kategori_buku')->get(); 
+        $categories = DB::table('bukus')->get(); 
 
         return view('admin.katalog', compact('buku', 'categories', 'search', 'kategori_filter'));
     }
