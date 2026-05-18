@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
+use App\Http\Controllers\AnggotaController;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
@@ -45,4 +46,10 @@ Route::middleware('auth')->group(function () {
 
     // Tambahkan Route baru ini untuk memproses Update/Edit Buku dari Modal Pop-Up
     Route::put('/admin/katalog/update/{id}', [BukuController::class, 'updateBuku'])->name('admin.katalog.updateBuku');
+
+    // Pastikan diletakkan di dalam grup middleware('auth')
+    Route::get('/admin/anggota', [App\Http\Controllers\AnggotaController::class, 'index'])->name('admin.anggota');
+    Route::post('/admin/anggota', [App\Http\Controllers\AnggotaController::class, 'store'])->name('admin.anggota.store');
+    Route::put('/admin/anggota/update/{id}', [App\Http\Controllers\AnggotaController::class, 'update'])->name('admin.anggota.update');
+    Route::delete('/admin/anggota/delete/{id}', [App\Http\Controllers\AnggotaController::class, 'destroy'])->name('admin.anggota.delete');
 });

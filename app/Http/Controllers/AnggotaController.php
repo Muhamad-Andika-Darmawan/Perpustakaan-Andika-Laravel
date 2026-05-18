@@ -1,0 +1,143 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
+class AnggotaController extends Controller
+{
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+        $filter_jurusan = $request->input('jurusan');
+        $filter_kelas = $request->input('kelas');
+
+        $query = User::query();
+
+        // Filter Pencarian berdasarkan Nama Lengkap atau NISN
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter berdasarkan Jurusan
+        if ($filter_jurusan) {
+            $query->where('jurusan', $filter_jurusan);
+        }
+
+        // Filter berdasarkan Kelas
+        if ($filter_kelas) {
+            $query->where('kelas', $filter_kelas);
+        }
+
+        // Ambil data dengan pagination 10 data per halaman sesuai flow
+        $users = $query->orderBy('role', 'asc')
+                       ->orderBy('nama_lengkap', 'asc')
+                       ->paginate(10)
+                       ->withQueryString();
+
+        return view('admin.anggota', compact('users', 'search', 'filter_jurusan', 'filter_kelas'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'nama_lengkap' => 'required',
+            'role' => 'required|in:admin,anggota',
+            'password' => 'required|min:6',
+            'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        $namaFoto = null;
+        if ($request->hasFile('foto_profil')) {
+            $file = $request->file('foto_profil');
+            $namaFoto = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/profil', $namaFoto);
+        }
+
+        User::create([
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'nama_lengkap' => $request->nama_lengkap,
+            'nisn' => $request->nisn,
+            'kelas' => $request->kelas,
+            'jurusan' => $request->jurusan,
+            'no_hp' => $request->no_telp,
+            'alamat' => $request->alamat,
+            'foto_profil' => $namaFoto,
+        ]);
+
+        return redirect()->route('admin.anggota')->with('success', 'User/Anggota baru berhasil didaftarkan!');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'username' => 'required|unique:users,username,' . $id,
+            'email' => 'required|email|unique:users,email,' . $id,
+            'nama_lengkap' => 'required',
+            'role' => 'required|in:admin,anggota',
+            'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        $user->username = $request->username;
+        $user->email = $request->email;
+        $user->role = $request->role;
+        $user->nama_lengkap = $request->nama_lengkap;
+        $user->nisn = $request->nisn;
+        $user->kelas = $request->kelas;
+        $user->jurusan = $request->jurusan;
+        $user->no_hp = $request->no_telp;
+        $user->alamat = $request->alamat;
+
+        // Jika admin menginput password baru (opsional saat edit)
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        // Ganti foto profil jika ada berkas baru
+        if ($request->hasFile('foto_profil')) {
+            if ($user->foto_profil && Storage::exists('public/profil/' . $user->foto_profil)) {
+                Storage::delete('public/profil/' . $user->foto_profil);
+            }
+
+            $file = $request->file('foto_profil');
+            $namaFoto = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/profil', $namaFoto);
+            $user->foto_profil = $namaFoto;
+        }
+
+        $user->save();
+
+        return redirect()->route('admin.anggota')->with('success', 'Data user/anggota berhasil diperbarui!');
+    }
+
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        
+        // Cegah admin menghapus dirinya sendiri secara tidak sengaja
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.anggota')->with('error', 'Anda tidak bisa menghapus akun Anda sendiri dari halaman ini!');
+        }
+
+        if ($user->foto_profil && Storage::exists('public/profil/' . $user->foto_profil)) {
+            Storage::delete('public/profil/' . $user->foto_profil);
+        }
+
+        $user->delete();
+
+        return redirect()->route('admin.anggota')->with('success', 'Akun user/anggota berhasil dihapus!');
+    }
+}

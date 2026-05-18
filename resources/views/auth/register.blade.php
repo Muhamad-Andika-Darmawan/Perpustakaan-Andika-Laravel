@@ -81,7 +81,7 @@
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-muted">Kelas</label>
                                 <select name="kelas" class="form-select" required>
-                                    <option value="">-- Pilih Kelas --</option>
+                                    <option value="">Pilih Kelas</option>
                                     <option value="X" {{ old('kelas') == 'X' ? 'selected' : '' }}>Kelas X</option>
                                     <option value="XI" {{ old('kelas') == 'XI' ? 'selected' : '' }}>Kelas XI</option>
                                     <option value="XII" {{ old('kelas') == 'XII' ? 'selected' : '' }}>Kelas XII</option>
@@ -90,13 +90,13 @@
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-muted">Jurusan</label>
                                 <select name="jurusan" class="form-select" required>
-                                    <option value="">-- Pilih Jurusan --</option>
+                                    <option value="">Pilih Jurusan</option>
                                     <option value="RPL" {{ old('jurusan') == 'RPL' ? 'selected' : '' }}>Rekayasa Perangkat Lunak (RPL)</option>
-                                    <option value="TKJ" {{ old('jurusan') == 'DKV 1' ? 'selected' : '' }}>Desain Komunikasi Visual 1 (DKV-1)</option>
-                                    <option value="DKV" {{ old('jurusan') == 'DKV 2' ? 'selected' : '' }}>Desain Komunikasi Visual 2 (DKV-2)</option>
-                                    <option value="DKV" {{ old('jurusan') == 'AK' ? 'selected' : '' }}>Akuntansi (AK)</option>
-                                    <option value="DKV" {{ old('jurusan') == 'BR' ? 'selected' : '' }}>Bisnis Retail (BR)</option>
-                                    <option value="DKV" {{ old('jurusan') == 'MP' ? 'selected' : '' }}>Manajemen Perkantoran (MP)</option>
+                                    <option value="DKV 1" {{ old('jurusan') == 'DKV 1' ? 'selected' : '' }}>Desain Komunikasi Visual 1 (DKV-1)</option>
+                                    <option value="DKV 2" {{ old('jurusan') == 'DKV 2' ? 'selected' : '' }}>Desain Komunikasi Visual 2 (DKV-2)</option>
+                                    <option value="AK" {{ old('jurusan') == 'AK' ? 'selected' : '' }}>Akuntansi (AK)</option>
+                                    <option value="BR" {{ old('jurusan') == 'BR' ? 'selected' : '' }}>Bisnis Retail (BR)</option>
+                                    <option value="MP" {{ old('jurusan') == 'MP' ? 'selected' : '' }}>Manajemen Perkantoran (MP)</option>
                                 </select>
                             </div>
                             <div class="mb-3">
