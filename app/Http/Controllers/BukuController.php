@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; // Sementara pakai DB Facade / sesuaikan jika sudah ada Model Buku
+use App\Models\Buku;
+use App\Models\Kategori;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class BukuController extends Controller
 {
@@ -12,10 +15,10 @@ class BukuController extends Controller
         $search = $request->input('search');
         $kategori_filter = $request->input('kategori');
 
-        // Query dasar mengambil data buku dan join dengan kategori jika ada
-        $query = DB::table('bukus'); 
+        // Query Model Buku dengan Eager Loading Kategori
+        $query = Buku::with('kategori');
 
-        // Logika Fitur Search (Judul, Penulis, Penerbit)
+        // Logika Filter Search dari PHP Native (Judul, Penulis, Penerbit)
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('judul', 'like', "%{$search}%")
@@ -24,21 +27,118 @@ class BukuController extends Controller
             });
         }
 
-        // Logika Fitur Filter Kategori
+        // Logika Filter Kategori
         if ($kategori_filter) {
             $query->where('kategori_id', $kategori_filter);
         }
 
-        // Pagination: Batasi hanya 10 data per halaman sesuai flow-mu
-        $buku = $query->paginate(10)->withQueryString();
+        // Pagination 10 data per halaman sesuai flow
+        $bukus = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        
+        // Ambil semua data kategori untuk dropdown & list modal
+        $kategoris = Kategori::all();
 
-        // Ambil list semua kategori untuk isi dropdown filter & modal select
-        $categories = DB::table('bukus')->get(); 
-
-        return view('admin.katalog', compact('buku', 'categories', 'search', 'kategori_filter'));
+        return view('admin.katalog', compact('bukus', 'kategoris', 'search', 'kategori_filter'));
     }
 
-    public function store(Request $request) { /* Logika simpan modal tambah */ }
-    public function update(Request $request, $id) { /* Logika simpan modal edit */ }
-    public function destroy($id) { /* Logika hapus */ }
+    // Proses Simpan Buku (Form Langsung di Halaman)
+    public function storeBuku(Request $request)
+    {
+        $request->validate([
+            'judul' => 'required',
+            'kategori_id' => 'required',
+            'penulis' => 'required',
+            'penerbit' => 'required',
+            'tahun_terbit' => 'required|numeric',
+            'stok' => 'required|numeric',
+            'cover' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'deskripsi' => 'nullable'
+        ]);
+
+        $namaCover = null;
+        if ($request->hasFile('cover')) {
+            $file = $request->file('cover');
+            $namaCover = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/covers', $namaCover);
+        }
+
+        Buku::create([
+            'judul' => $request->judul,
+            'kategori_id' => $request->kategori_id,
+            'penulis' => $request->penulis,
+            'penerbit' => $request->penerbit,
+            'tahun_terbit' => $request->tahun_terbit,
+            'stok' => $request->stok,
+            'deskripsi' => $request->deskripsi,
+            'cover' => $namaCover
+        ]);
+
+        return redirect()->route('admin.katalog')->with('success', 'Buku berhasil ditambahkan!');
+    }
+
+    // Proses Simpan Kategori Baru (Dari dalam Modal Pop-Up)
+    public function storeKategori(Request $request)
+    {
+        $request->validate([
+            'nama_kategori' => 'required|unique:kategoris,nama_kategori'
+        ]);
+
+        Kategori::create([
+            'nama_kategori' => $request->nama_kategori,
+            'slug' => Str::slug($request->nama_kategori)
+        ]);
+
+        return redirect()->route('admin.katalog')->with('success', 'Kategori baru berhasil disimpan!');
+    }
+
+    // Proses Hapus Kategori (Dari dalam Modal Pop-Up)
+    public function destroyKategori($id)
+    {
+        $kategori = Kategori::findOrFail($id);
+        $kategori->delete();
+
+        return redirect()->route('admin.katalog')->with('success', 'Kategori berhasil dihapus!');
+    }
+
+    public function updateBuku(Request $request, $id)
+{
+    $request->validate([
+        'judul' => 'required',
+        'kategori_id' => 'required',
+        'penulis' => 'required',
+        'penerbit' => 'required',
+        'tahun_terbit' => 'required|numeric',
+        'stok' => 'required|numeric',
+        'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    $buku = Buku::findOrFail($id);
+
+    // Ambil data inputan lama / baru
+    $buku->judul = $request->judul;
+    $buku->kategori_id = $request->kategori_id;
+    $buku->penulis = $request->penulis;
+    $buku->penerbit = $request->penerbit;
+    $buku->tahun_terbit = $request->tahun_terbit;
+    $buku->stok = $request->stok;
+    $buku->deskripsi = $request->deskripsi;
+
+    // Jika admin mengunggah cover baru
+    if ($request->hasFile('cover')) {
+        // Hapus cover lama dari storage jika ada agar tidak memenuhi server
+        if ($buku->cover && Storage::exists('public/covers/' . $buku->cover)) {
+            Storage::delete('public/covers/' . $buku->cover);
+        }
+
+        $file = $request->file('cover');
+        $namaCover = time() . '_' . $file->getClientOriginalName();
+        $file->storeAs('public/covers', $namaCover);
+        
+        $buku->cover = $namaCover;
+    }
+
+    $buku->save();
+
+    return redirect()->route('admin.katalog')->with('success', 'Data buku berhasil diperbarui!');
+}
 }

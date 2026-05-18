@@ -34,11 +34,15 @@ Route::middleware('auth')->group(function () {
     // Proses Keluar Aplikasi
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Route Utama: Katalog Buku
+    // Pastikan dimasukkan di dalam grup middleware 'auth' Anda yang sudah berjalan
     Route::get('/admin/katalog', [BukuController::class, 'index'])->name('admin.katalog');
-    
-    // Route Action (Untuk Modal Tambah/Edit/Hapus Buku nanti)
-    Route::post('/admin/katalog/store', [BukuController::class, 'store'])->name('admin.katalog.store');
-    Route::put('/admin/katalog/update/{id}', [BukuController::class, 'update'])->name('admin.katalog.update');
-    Route::delete('/admin/katalog/delete/{id}', [BukuController::class, 'destroy'])->name('admin.katalog.delete');
+    Route::post('/admin/katalog/buku', [BukuController::class, 'storeBuku'])->name('admin.katalog.storeBuku');
+    Route::post('/admin/katalog/kategori', [BukuController::class, 'storeKategori'])->name('admin.katalog.storeKategori');
+
+    // FIX REVISI KATEGORI: Di katalog.blade.php form hapus menggunakan method POST (tanpa @method('DELETE'))
+    // Jadi di route wajib kita ganti dari Route::delete menjadi Route::post agar tidak error!
+    Route::post('/admin/katalog/kategori/{id}', [BukuController::class, 'destroyKategori'])->name('admin.katalog.deleteKategori');
+
+    // Tambahkan Route baru ini untuk memproses Update/Edit Buku dari Modal Pop-Up
+    Route::put('/admin/katalog/update/{id}', [BukuController::class, 'updateBuku'])->name('admin.katalog.updateBuku');
 });
