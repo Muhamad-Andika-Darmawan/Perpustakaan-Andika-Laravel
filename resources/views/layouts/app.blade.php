@@ -127,8 +127,12 @@
         </a>
 
         <div class="menu-section">LAPORAN</div>
-        <a class="nav-link" href="#"><i class="bi bi-bar-chart"></i> Laporan Peminjaman</a>
-        <a class="nav-link" href="#"><i class="bi bi-graph-up"></i> Buku Terpopuler</a>
+        <a class="nav-link {{ Route::is('admin.laporan.peminjaman') ? 'active' : '' }}" href="{{ route('admin.laporan.peminjaman') }}">
+            <i class="bi bi-bar-chart"></i> Laporan Peminjaman
+        </a>
+        <a class="nav-link {{ Route::is('admin.laporan.terpopuler') ? 'active' : '' }}" href="{{ route('admin.laporan.terpopuler') }}">
+            <i class="bi bi-graph-up"></i> Buku Terpopuler
+        </a>
 
         <div class="menu-section">PENGATURAN</div>
         <a class="nav-link" href="#"><i class="bi bi-person-bounding-box"></i> Profile</a>

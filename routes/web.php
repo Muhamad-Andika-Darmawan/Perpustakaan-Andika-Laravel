@@ -67,4 +67,8 @@ Route::middleware('auth')->group(function () {
     // Tambahan Baru: Transaksi Denda (Admin)
     Route::get('/admin/denda', [PeminjamanController::class, 'indexDenda'])->name('admin.denda');
     Route::post('/admin/denda/lunas/{id}', [PeminjamanController::class, 'lunasDenda'])->name('admin.denda.lunas');
+
+    // Jalur Menu LAPORAN (Admin)
+    Route::get('/admin/laporan/peminjaman', [App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('admin.laporan.peminjaman');
+    Route::get('/admin/laporan/terpopuler', [App\Http\Controllers\LaporanController::class, 'terpopuler'])->name('admin.laporan.terpopuler');
 });
