@@ -93,7 +93,7 @@
                     </div>
                 </a>
 
-                <a href="#" class="text-decoration-none text-dark">
+                <a href="{{ route('admin.anggota') }}" class="text-decoration-none text-dark">
                     <div class="quick-item d-flex align-items-center">
                         <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-0 me-3" style="width:40px; height:40px;">
                             <i class="bi bi-person-plus"></i>
