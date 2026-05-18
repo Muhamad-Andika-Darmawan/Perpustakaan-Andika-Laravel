@@ -107,4 +107,128 @@ class PeminjamanController extends Controller
             'total_dipinjam' => $total_dipinjam,
         ]);
     }
+
+    // Halaman Pengembalian Buku
+    public function indexPengembalian(Request $request)
+    {
+        $search = $request->input('search');
+        $filter_tingkat = $request->input('tingkat');
+        $filter_jurusan = $request->input('jurusan');
+
+        // Hanya mengambil data yang berstatus 'dipinjam'
+        $query = Peminjaman::with(['user', 'buku'])->where('status', 'dipinjam');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function($u) use ($search) {
+                    $u->where('nama_lengkap', 'like', "%{$search}%")
+                      ->orWhere('username', 'like', "%{$search}%");
+                })->orWhereHas('buku', function($b) use ($search) {
+                    $b->where('judul', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        if ($filter_tingkat) {
+            $query->whereHas('user', function($u) use ($filter_tingkat) {
+                $u->where('kelas', $filter_tingkat);
+            });
+        }
+
+        if ($filter_jurusan) {
+            $query->whereHas('user', function($u) use ($filter_jurusan) {
+                $u->where('jurusan', $filter_jurusan);
+            });
+        }
+
+        $pengembalians = $query->orderBy('tgl_pinjam', 'asc')->paginate(10)->withQueryString();
+
+        return view('admin.pengembalian', compact('pengembalians', 'search', 'filter_tingkat', 'filter_jurusan'));
+    }
+
+    // Proses Pengembalian Buku & Hitung Denda Otomatis
+    public function prosesPengembalian($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+        $buku = \App\Models\Buku::find($peminjaman->buku_id);
+
+        $tgl_kembali_seharusnya = Carbon::parse($peminjaman->tgl_kembali_seharusnya);
+        $hari_ini = Carbon::now();
+        
+        $total_denda = 0;
+
+        // Cek apakah terlambat
+        if ($hari_ini->gt($tgl_kembali_seharusnya)) {
+            $selisih_hari = $hari_ini->diffInDays($tgl_kembali_seharusnya);
+            $total_denda = $selisih_hari * 1000; // Rp 1.000/hari
+        }
+
+        // Update data peminjaman
+        $peminjaman->update([
+            'status' => 'kembali',
+            'tgl_pengembalian' => $hari_ini->toDateString(),
+            'total_denda' => $total_denda,
+        ]);
+
+        // Kembalikan stok buku ke perpustakaan
+        if ($buku) {
+            $buku->increment('stok');
+        }
+
+        if ($total_denda > 0) {
+            return redirect()->route('admin.pengembalian')->with('success', 'Buku berhasil dikembalikan! Anggota terlambat dikembalikan dan dikenakan denda sebesar Rp ' . number_format($total_denda, 0, ',', '.'));
+        }
+
+        return redirect()->route('admin.pengembalian')->with('success', 'Buku berhasil dikembalikan tepat waktu!');
+    }
+
+    // Halaman Daftar Denda
+    public function indexDenda(Request $request)
+    {
+        $search = $request->input('search');
+        $filter_tingkat = $request->input('tingkat');
+        $filter_jurusan = $request->input('jurusan');
+
+        // Menampilkan transaksi yang memiliki denda > 0
+        $query = Peminjaman::with(['user', 'buku'])->where('total_denda', '>', 0);
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function($u) use ($search) {
+                    $u->where('nama_lengkap', 'like', "%{$search}%");
+                })->orWhereHas('buku', function($b) use ($search) {
+                    $b->where('judul', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        if ($filter_tingkat) {
+            $query->whereHas('user', function($u) use ($filter_tingkat) {
+                $u->where('kelas', $filter_tingkat);
+            });
+        }
+
+        if ($filter_jurusan) {
+            $query->whereHas('user', function($u) use ($filter_jurusan) {
+                $u->where('jurusan', $filter_jurusan);
+            });
+        }
+
+        $dendas = $query->orderBy('status', 'asc')->paginate(10)->withQueryString();
+
+        return view('admin.denda', compact('dendas', 'search', 'filter_tingkat', 'filter_jurusan'));
+    }
+
+    // Proses Pelunasan Denda
+    public function lunasDenda($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+        
+        // Mengeset denda jadi 0 karena sudah dibayar cash ke admin
+        $peminjaman->update([
+            'total_denda' => 0
+        ]);
+
+        return redirect()->route('admin.denda')->with('success', 'Denda anggota berhasil dilunasi!');
+    }
 }

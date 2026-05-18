@@ -59,4 +59,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/peminjaman/acc/{id}', [PeminjamanController::class, 'accPeminjaman'])->name('admin.peminjaman.acc');
     Route::post('/admin/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolakPeminjaman'])->name('admin.peminjaman.tolak');
     Route::get('/admin/peminjaman/detail-anggota/{id}', [PeminjamanController::class, 'detailAnggota'])->name('admin.peminjaman.detailAnggota');
+
+    // Tambahan Baru: Transaksi Pengembalian (Admin)
+    Route::get('/admin/pengembalian', [PeminjamanController::class, 'indexPengembalian'])->name('admin.pengembalian');
+    Route::post('/admin/pengembalian/proses/{id}', [PeminjamanController::class, 'prosesPengembalian'])->name('admin.pengembalian.proses');
+
+    // Tambahan Baru: Transaksi Denda (Admin)
+    Route::get('/admin/denda', [PeminjamanController::class, 'indexDenda'])->name('admin.denda');
+    Route::post('/admin/denda/lunas/{id}', [PeminjamanController::class, 'lunasDenda'])->name('admin.denda.lunas');
 });
