@@ -77,11 +77,11 @@
                     <tr>
                         <th class="text-center" style="width: 50px;">No</th>
                         <th class="text-center" style="width: 70px;">Profil</th>
-                        <th>Nama Lengkap</th>
-                        <th>Username & Email</th>
-                        <th>NISN</th>
-                        <th>Kelas & Jurusan</th>
-                        <th>No. Telp</th>
+                        <th class="text-center">Nama Lengkap</th>
+                        <th  class="text-center">Username & Email</th>
+                        <th class="text-center">NISN</th>
+                        <th class="text-center">Kelas & Jurusan</th>
+                        <th class="text-center">No. Telp</th>
                         <th class="text-center" style="width: 90px;">Hak Akses</th>
                         <th class="text-center" style="width: 110px;">Aksi</th>
                     </tr>

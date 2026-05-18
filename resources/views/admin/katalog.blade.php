@@ -132,11 +132,11 @@
                     <tr>
                         <th class="text-center" style="width: 50px;">No</th>
                         <th class="text-center" style="width: 60px;">Cover</th>
-                        <th>Judul Buku</th>
-                        <th>Deskripsi / Sinopsis</th>
-                        <th>Kategori</th>
-                        <th>Penulis</th>
-                        <th>Penerbit & Tahun Terbit</th>
+                        <th class="text-center">Judul Buku</th>
+                        <th class="text-center">Deskripsi / Sinopsis</th>
+                        <th class="text-center">Kategori</th>
+                        <th class="text-center">Penulis</th>
+                        <th class="text-center">Penerbit & Tahun Terbit</th>
                         <th class="text-center" style="width: 80px;">Stok</th>
                         <th class="text-center" style="width: 110px;">Aksi</th>
                     </tr>

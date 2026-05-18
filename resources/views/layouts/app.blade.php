@@ -116,7 +116,9 @@
         </a>
 
         <div class="menu-section">TRANSAKSI</div>
-        <a class="nav-link" href="#"><i class="bi bi-arrow-left-right"></i> Peminjaman</a>
+        <a class="nav-link {{ Route::is('admin.peminjaman') ? 'active' : '' }}" href="{{ route('admin.peminjaman') }}">
+            <i class="bi bi-arrow-left-right"></i> Peminjaman
+        </a>
         <a class="nav-link" href="#"><i class="bi bi-arrow-return-left"></i> Pengembalian</a>
         <a class="nav-link" href="#"><i class="bi bi-exclamation-triangle"></i> Denda</a>
 

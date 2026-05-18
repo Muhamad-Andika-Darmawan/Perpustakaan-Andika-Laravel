@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\AnggotaController;
+use App\Http\Controllers\PeminjamanController;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
@@ -52,4 +53,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/anggota', [App\Http\Controllers\AnggotaController::class, 'store'])->name('admin.anggota.store');
     Route::put('/admin/anggota/update/{id}', [App\Http\Controllers\AnggotaController::class, 'update'])->name('admin.anggota.update');
     Route::delete('/admin/anggota/delete/{id}', [App\Http\Controllers\AnggotaController::class, 'destroy'])->name('admin.anggota.delete');
+
+    // Transaksi Peminjaman (Admin)
+    Route::get('/admin/peminjaman', [PeminjamanController::class, 'index'])->name('admin.peminjaman');
+    Route::post('/admin/peminjaman/acc/{id}', [PeminjamanController::class, 'accPeminjaman'])->name('admin.peminjaman.acc');
+    Route::post('/admin/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolakPeminjaman'])->name('admin.peminjaman.tolak');
+    Route::get('/admin/peminjaman/detail-anggota/{id}', [PeminjamanController::class, 'detailAnggota'])->name('admin.peminjaman.detailAnggota');
 });
