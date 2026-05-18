@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\ProfileController;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
@@ -71,4 +72,10 @@ Route::middleware('auth')->group(function () {
     // Jalur Menu LAPORAN (Admin)
     Route::get('/admin/laporan/peminjaman', [App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('admin.laporan.peminjaman');
     Route::get('/admin/laporan/terpopuler', [App\Http\Controllers\LaporanController::class, 'terpopuler'])->name('admin.laporan.terpopuler');
+
+    // Jalur Fitur Profile Pengaturan (Bisa diakses Admin & Anggota)
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::delete('/profile/delete', [ProfileController::class, 'destroy'])->name('profile.delete');
 });

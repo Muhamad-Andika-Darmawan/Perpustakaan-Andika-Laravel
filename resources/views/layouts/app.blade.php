@@ -135,7 +135,9 @@
         </a>
 
         <div class="menu-section">PENGATURAN</div>
-        <a class="nav-link" href="#"><i class="bi bi-person-bounding-box"></i> Profile</a>
+        <a class="nav-link {{ Request::routeIs('profile') ? 'active' : '' }}" href="{{ route('profile') }}">
+            <i class="bi bi-person-bounding-box"></i> Profile
+        </a>
         <a class="nav-link text-danger mt-2" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <i class="bi bi-box-arrow-right"></i> Log Out
         </a>
