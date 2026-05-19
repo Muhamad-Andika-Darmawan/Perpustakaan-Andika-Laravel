@@ -19,11 +19,21 @@
             width: 16.666667%; /* Setara dengan col-md-2 */
             min-width: 240px; 
             background: #0b1b35; 
-            min-height: 100vh; 
+            height: 100vh; /* Kunci tinggi sidebar pas satu layar penuh */
             position: sticky; 
             top: 0; 
             color: white; 
             z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-top {
+            overflow-y: auto; /* Menu atas bisa scroll sendiri kalau kepanjangan */
+            flex: 1;
+        }
+        /* Opsional: Sembunyikan scrollbar menu biar sidebar tetap terlihat bersih bersih */
+        .sidebar-top::-webkit-scrollbar {
+            width: 0px;
         }
         
         .logo-box { width: 45px; height: auto; }
@@ -201,13 +211,13 @@
                 @csrf
             </form>
         </div> </nav>
-        </div>
 
     <div id="main-section" class="d-flex flex-column">
         <div id="content">
             @yield('content')
         </div>
     </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
