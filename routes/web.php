@@ -6,6 +6,8 @@ use App\Http\Controllers\BukuController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Buku;
+use App\Models\User;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
@@ -26,8 +28,11 @@ Route::middleware('auth')->group(function () {
     
     // Dashboard khusus Admin
     Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    $totalBuku = Buku::count();
+    $totalAnggota = User::count();
+    return view('admin.dashboard', compact('totalBuku', 'totalAnggota'));
+})->name('admin.dashboard');
+    
 
     // Dashboard khusus Anggota (Sementara kita arahkan ke view yang sama atau view anggota besok)
     Route::get('/anggota/dashboard', function () {

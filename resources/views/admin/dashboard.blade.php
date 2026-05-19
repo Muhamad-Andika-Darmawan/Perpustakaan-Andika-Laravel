@@ -20,14 +20,14 @@
         <div class="col-md-3">
             <div class="custom-card">
                 <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-book"></i></div>
-                <h2 class="fw-bold mb-0">0</h2>
+                <h2 class="fw-bold mb-0">{{ $totalBuku }}</h2>
                 <div class="text-muted small">Total Koleksi Buku</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="custom-card">
                 <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people"></i></div>
-                <h2 class="fw-bold mb-0">0</h2>
+                <h2 class="fw-bold mb-0">{{ $totalAnggota }}</h2>
                 <div class="text-muted small">Total Anggota Aktif</div>
             </div>
         </div>
