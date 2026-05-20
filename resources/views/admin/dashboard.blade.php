@@ -12,7 +12,7 @@
     </div>
 
     <div class="welcome-box shadow-sm">
-        <h2 class="fw-bold mb-2">Selamat Datang, {{ auth()->user()->username ?? 'Admin' }}! 👋</h2>
+        <h2 class="fw-bold mb-2">Selamat Datang, {{ auth()->user()->nama_lengkap ?? 'Admin' }}! 👋</h2>
         <p class="mb-0 opacity-75">Berikut ringkasan aktivitas perpustakaan hari ini – {{ \Carbon\Carbon::now()->isoFormat('DD MMMM YYYY') }}</p>
     </div>
 

@@ -154,39 +154,64 @@
                 <img src="{{ asset('logo-smk.png') }}" alt="Logo" class="me-3 logo-box">
                 <div>
                     <div class="sidebar-title">Perpustakaan 40</div>
-                    <div class="sidebar-sub">Admin Panel</div>
+                    <div class="sidebar-sub">{{ auth()->user()->role == 'admin' ? 'Admin Panel' : 'Anggota Panel' }}</div>
                 </div>
             </div>
 
-            <div class="menu-section">UTAMA</div>
-            <a class="nav-link {{ Route::is('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-            <a class="nav-link {{ Route::is('admin.katalog') ? 'active' : '' }}" href="{{ route('admin.katalog') }}">
-                <i class="bi bi-book"></i> Katalog Buku
-            </a>
-            <a class="nav-link {{ Route::is('admin.anggota') ? 'active' : '' }}" href="{{ route('admin.anggota') }}">
-                <i class="bi bi-people"></i> Data Anggota & Staff
-            </a>
+            @if(auth()->user()->role == 'admin')
+                <div class="menu-section">UTAMA</div>
+                <a class="nav-link {{ Route::is('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a class="nav-link {{ Route::is('admin.katalog') ? 'active' : '' }}" href="{{ route('admin.katalog') }}">
+                    <i class="bi bi-book"></i> Katalog Buku
+                </a>
+                <a class="nav-link {{ Route::is('admin.anggota') ? 'active' : '' }}" href="{{ route('admin.anggota') }}">
+                    <i class="bi bi-people"></i> Data Anggota & Staff
+                </a>
 
-            <div class="menu-section">TRANSAKSI</div>
-            <a class="nav-link {{ Route::is('admin.peminjaman') ? 'active' : '' }}" href="{{ route('admin.peminjaman') }}">
-                <i class="bi bi-arrow-left-right"></i> Peminjaman
-            </a>
-            <a class="nav-link {{ Route::is('admin.pengembalian') ? 'active' : '' }}" href="{{ route('admin.pengembalian') }}">
-                <i class="bi bi-arrow-return-left"></i> Pengembalian
-            </a>
-            <a class="nav-link {{ Route::is('admin.denda') ? 'active' : '' }}" href="{{ route('admin.denda') }}">
-                <i class="bi bi-exclamation-triangle"></i> Denda
-            </a>
+                <div class="menu-section">TRANSAKSI</div>
+                <a class="nav-link {{ Route::is('admin.peminjaman') ? 'active' : '' }}" href="{{ route('admin.peminjaman') }}">
+                    <i class="bi bi-arrow-left-right"></i> Peminjaman
+                </a>
+                <a class="nav-link {{ Route::is('admin.pengembalian') ? 'active' : '' }}" href="{{ route('admin.pengembalian') }}">
+                    <i class="bi bi-arrow-return-left"></i> Pengembalian
+                </a>
+                <a class="nav-link {{ Route::is('admin.denda') ? 'active' : '' }}" href="{{ route('admin.denda') }}">
+                    <i class="bi bi-exclamation-triangle"></i> Denda
+                </a>
 
-            <div class="menu-section">LAPORAN</div>
-            <a class="nav-link {{ Route::is('admin.laporan.peminjaman') ? 'active' : '' }}" href="{{ route('admin.laporan.peminjaman') }}">
-                <i class="bi bi-bar-chart"></i> Laporan Peminjaman
-            </a>
-            <a class="nav-link {{ Route::is('admin.laporan.terpopuler') ? 'active' : '' }}" href="{{ route('admin.laporan.terpopuler') }}">
-                <i class="bi bi-graph-up"></i> Buku Terpopuler
-            </a>
+                <div class="menu-section">LAPORAN</div>
+                <a class="nav-link {{ Route::is('admin.laporan.peminjaman') ? 'active' : '' }}" href="{{ route('admin.laporan.peminjaman') }}">
+                    <i class="bi bi-bar-chart"></i> Laporan Peminjaman
+                </a>
+                <a class="nav-link {{ Route::is('admin.laporan.terpopuler') ? 'active' : '' }}" href="{{ route('admin.laporan.terpopuler') }}">
+                    <i class="bi bi-graph-up"></i> Buku Terpopuler
+                </a>
+            @else
+                <div class="menu-section">UTAMA</div>
+                <a class="nav-link {{ Route::is('anggota.dashboard') ? 'active' : '' }}" href="{{ route('anggota.dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-book"></i> Katalog Buku
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-people"></i> Data Anggota
+                </a>
+
+                <div class="menu-section">AKTIVITAS SAYA</div>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-clock-history"></i> Riwayat & Pinjaman
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-wallet2"></i> Tagihan Denda
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-fire"></i> Buku Terpopuler
+                </a>
+            @endif
+
         </div> <div class="sidebar-footer p-3 w-100 mt-auto">
             <a href="{{ route('profile') }}" class="d-flex align-items-center mb-3 text-decoration-none quick-profile-link p-2" style="border-radius: 12px; transition: 0.2s;">
                 <div class="me-2">

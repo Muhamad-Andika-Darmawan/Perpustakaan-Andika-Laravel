@@ -34,10 +34,11 @@ Route::middleware('auth')->group(function () {
 })->name('admin.dashboard');
     
 
-    // Dashboard khusus Anggota (Sementara kita arahkan ke view yang sama atau view anggota besok)
+    // Rute untuk Dashboard Anggota
     Route::get('/anggota/dashboard', function () {
-        return "Selamat datang di Dashboard Anggota! (Halaman ini akan kita buat besok)";
-    })->name('anggota.dashboard');
+        // Sementara kita pasang angka statis dulu seperti rencana simulasimu
+        return view('anggota.dashboard');
+    })->name('anggota.dashboard')->middleware('auth');
 
     // Proses Keluar Aplikasi
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
