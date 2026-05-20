@@ -7,6 +7,7 @@ use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Buku;
+use App\Models\Kategori;
 use App\Models\User;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
@@ -84,4 +85,32 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::delete('/profile/delete', [ProfileController::class, 'destroy'])->name('profile.delete');
+
+    Route::get('/anggota/katalog', function (Illuminate\Http\Request $request) {
+    $search = $request->input('search');
+    $filterKategori = $request->input('kategori');
+
+    // Query buku dengan filter search & kategori
+    $query = Buku::with('kategori');
+
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('judul', 'like', "%{$search}%")
+              ->orWhere('penulis', 'like', "%{$search}%")
+              ->orWhere('penerbit', 'like', "%{$search}%");
+        });
+    }
+
+    if ($filterKategori) {
+        $query->where('kategori_id', $filterKategori);
+    }
+
+    // Ambil data buku dengan pagination 10 data
+    $bukus = $query->paginate(10)->withQueryString();
+    
+    // Ambil semua kategori untuk menu dropdown filter
+    $kategoris = Kategori::all();
+
+    return view('anggota.katalog', compact('bukus', 'kategoris', 'search', 'filterKategori'));
+    })->name('anggota.katalog')->middleware('auth');
 });

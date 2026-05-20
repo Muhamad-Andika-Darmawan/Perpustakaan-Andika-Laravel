@@ -193,7 +193,7 @@
                 <a class="nav-link {{ Route::is('anggota.dashboard') ? 'active' : '' }}" href="{{ route('anggota.dashboard') }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
-                <a class="nav-link" href="#">
+                <a class="nav-link {{ Route::is('anggota.katalog') ? 'active' : '' }}" href="{{ route('anggota.katalog') }}">
                     <i class="bi bi-book"></i> Katalog Buku
                 </a>
                 <a class="nav-link" href="#">
