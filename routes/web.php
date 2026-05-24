@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Models\Buku;
 use App\Models\Kategori;
 use App\Models\User;
+use App\Models\Peminjaman;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
@@ -148,5 +149,28 @@ Route::middleware('auth')->group(function () {
     // 2. MASUKKAN 'filter_jurusan' KE DALAM COMPACT AGAR DIOPER KE BLADE
     return view('anggota.data_anggota', compact('users', 'search', 'filter_kelas', 'filter_jurusan'));
 })->name('anggota.data_anggota');
+
+// Taruh di dalam grup Route::middleware('auth')->group(function () { ... })
+Route::get('/anggota/riwayat-pinjaman', function (Illuminate\Http\Request $request) {
+    // Default-nya memunculkan tab 'menunggu' sesuai isi database kamu
+    $tabaktif = $request->input('tab', 'menunggu');
+    
+    $query = Peminjaman::with('buku')->where('user_id', auth()->id());
+
+    // Cek kecocokan status berdasarkan tab yang di-klik user
+    if ($tabaktif === 'menunggu') {
+        $query->where('status', 'menunggu');
+    } elseif ($tabaktif === 'dipinjam') {
+        $query->where('status', 'dipinjam');
+    } elseif ($tabaktif === 'kembali') {
+        // Gabungkan status 'kembali' dan 'ditolak' di tab "Sudah Dikembalikan / Selesai"
+        // atau kamu bisa sesuaikan jika ingin ditolak masuk ke tab tersendiri.
+        $query->whereIn('status', ['kembali', 'ditolak']);
+    }
+
+    $riwayats = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+
+    return view('anggota.riwayat_pinjaman', compact('riwayats', 'tabaktif'));
+})->name('anggota.riwayat_pinjaman');
 }
 );

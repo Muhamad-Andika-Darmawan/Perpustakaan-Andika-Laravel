@@ -201,7 +201,7 @@
                 </a>
 
                 <div class="menu-section">AKTIVITAS SAYA</div>
-                <a class="nav-link" href="#">
+                <a class="nav-link {{ Route::is('anggota.riwayat_pinjaman') ? 'active' : '' }}" href="{{ route('anggota.riwayat_pinjaman') }}">
                     <i class="bi bi-clock-history"></i> Riwayat & Pinjaman
                 </a>
                 <a class="nav-link" href="#">
