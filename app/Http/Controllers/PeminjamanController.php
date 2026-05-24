@@ -102,7 +102,7 @@ class PeminjamanController extends Controller
             'nisn' => $user->nisn ?? '-',
             'kelas' => $user->kelas ?? '-',
             'jurusan' => $user->jurusan ?? '-',
-            'no_telp' => $user->no_telp ?? '-',
+            'no_hp' => $user->no_hp ?? '-',
             'foto_profil' => $user->foto_profil ? asset('storage/profil/' . $user->foto_profil) : null,
             'total_dipinjam' => $total_dipinjam,
         ]);

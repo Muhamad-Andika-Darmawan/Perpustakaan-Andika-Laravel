@@ -146,7 +146,7 @@
 
                                     <div class="col-md-12">
                                         <label class="form-label small fw-bold text-dark">No. Telepon</label>
-                                        <input type="text" name="no_telp" class="form-control" placeholder="Contoh : 081234567890"  value="{{ old('no_telp', $user->no_telp) }}" style="border-radius: 8px;">
+                                        <input type="text" name="no_hp" class="form-control" placeholder="Contoh : 081234567890"  value="{{ old('no_hp', $user->no_hp) }}" style="border-radius: 8px;">
                                     </div>
 
                                     <div class="col-md-12">

@@ -113,4 +113,40 @@ Route::middleware('auth')->group(function () {
 
     return view('anggota.katalog', compact('bukus', 'kategoris', 'search', 'filterKategori'));
     })->name('anggota.katalog')->middleware('auth');
-});
+
+    Route::get('/anggota/data-anggota', function (Illuminate\Http\Request $request) {
+    $search = $request->input('search');
+    $filter_kelas = $request->input('kelas'); 
+    // 1. AMBIL DATA JURUSAN DARI DROPDOWN HTML (Sebelumnya bagian ini hilang)
+    $filter_jurusan = $request->input('jurusan'); 
+
+    $query = App\Models\User::query();
+
+    // Fitur Search Multi-Kolom
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('nama_lengkap', 'like', "%{$search}%")
+              ->orWhere('username', 'like', "%{$search}%")
+              ->orWhere('nisn', 'like', "%{$search}%")
+              ->orWhere('role', 'like', "%{$search}%");
+        });
+    }
+
+    // Logika Filter Kelas
+    if ($filter_kelas) {
+        $query->where('kelas', $filter_kelas);
+    }
+
+    // Logika Filter Jurusan
+    if ($filter_jurusan) {
+        $query->where('jurusan', $filter_jurusan);
+    }
+
+    // Ambil data dengan pagination dan pertahankan parameter URL query
+    $users = $query->orderBy('role', 'asc')->paginate(10)->withQueryString();
+    
+    // 2. MASUKKAN 'filter_jurusan' KE DALAM COMPACT AGAR DIOPER KE BLADE
+    return view('anggota.data_anggota', compact('users', 'search', 'filter_kelas', 'filter_jurusan'));
+})->name('anggota.data_anggota');
+}
+);

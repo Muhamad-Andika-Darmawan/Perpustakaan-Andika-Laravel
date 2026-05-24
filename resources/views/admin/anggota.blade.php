@@ -116,7 +116,7 @@
                                 <span class="text-muted italic small">Bukan Siswa</span>
                             @endif
                         </td>
-                        <td class="text-dark">{{ $user->no_telp ?? '-' }}</td>
+                        <td class="text-dark">{{ $user->no_hp ?? '-' }}</td>
                         <td class="text-center">
                             @if($user->role == 'admin')
                                 <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1 fw-bold" style="font-size: 11px;">Admin</span>
@@ -138,7 +138,7 @@
                                         data-nisn="{{ $user->nisn }}"
                                         data-kelas="{{ $user->kelas }}"
                                         data-jurusan="{{ $user->jurusan }}"
-                                        data-telp="{{ $user->no_telp }}"
+                                        data-telp="{{ $user->no_hp }}"
                                         data-alamat="{{ $user->alamat }}"
                                         data-foto="{{ $user->foto_profil ? asset('storage/profil/'.$user->foto_profil) : '' }}">
                                     <i class="bi bi-pencil"></i>
@@ -241,7 +241,7 @@
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="form-label small fw-bold text-secondary">No. Telepon / WhatsApp</label>
-                            <input type="text" name="no_telp" id="edit_telp" class="form-control" placeholder="Contoh : 081234567890" style="border-radius: 8px;">
+                            <input type="text" name="no_hp" id="edit_telp" class="form-control" placeholder="Contoh : 081234567890" style="border-radius: 8px;">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -338,7 +338,7 @@
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="form-label small fw-bold text-secondary">No. Telepon / WhatsApp</label>
-                            <input type="text" name="no_telp" id="edit_telp" class="form-control" placeholder="Contoh : 081234567890" style="border-radius: 8px;">
+                            <input type="text" name="no_hp" id="edit_telp" class="form-control" placeholder="Contoh : 081234567890" style="border-radius: 8px;">
                         </div>
                     </div>
                     <div class="mb-3">

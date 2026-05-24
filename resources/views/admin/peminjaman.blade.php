@@ -221,7 +221,7 @@
                     document.getElementById('user_nisn').innerText = data.nisn;
                     document.getElementById('user_kelas').innerText = data.kelas;
                     document.getElementById('user_jurusan').innerText = data.jurusan;
-                    document.getElementById('user_telp').innerText = data.no_telp;
+                    document.getElementById('user_telp').innerText = data.no_hp;
                     document.getElementById('user_total_pinjam').innerText = data.total_dipinjam;
 
                     const avatarImg = document.getElementById('user_avatar');

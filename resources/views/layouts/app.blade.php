@@ -196,8 +196,8 @@
                 <a class="nav-link {{ Route::is('anggota.katalog') ? 'active' : '' }}" href="{{ route('anggota.katalog') }}">
                     <i class="bi bi-book"></i> Katalog Buku
                 </a>
-                <a class="nav-link" href="#">
-                    <i class="bi bi-people"></i> Data Anggota
+                <a class="nav-link {{ Route::is('anggota.data_anggota') ? 'active' : '' }}" href="{{ route('anggota.data_anggota') }}">
+                    <i class="bi bi-people"></i> Data Anggota & Staff
                 </a>
 
                 <div class="menu-section">AKTIVITAS SAYA</div>

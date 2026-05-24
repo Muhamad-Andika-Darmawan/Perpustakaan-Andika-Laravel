@@ -71,7 +71,7 @@ class AnggotaController extends Controller
             'nisn' => $request->nisn,
             'kelas' => $request->kelas,
             'jurusan' => $request->jurusan,
-            'no_hp' => $request->no_telp,
+            'no_hp' => $request->no_hp,
             'alamat' => $request->alamat,
             'foto_profil' => $namaFoto,
         ]);
@@ -98,7 +98,7 @@ class AnggotaController extends Controller
         $user->nisn = $request->nisn;
         $user->kelas = $request->kelas;
         $user->jurusan = $request->jurusan;
-        $user->no_hp = $request->no_telp;
+        $user->no_hp = $request->no_hp;
         $user->alamat = $request->alamat;
 
         // Jika admin menginput password baru (opsional saat edit)
