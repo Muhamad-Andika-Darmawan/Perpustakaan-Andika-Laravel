@@ -16,6 +16,7 @@ class AuthController extends Controller
     }
 
     // Memproses Login
+    // Memproses Login (Versi Fix Loop Redirect)
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -26,11 +27,13 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Cek role untuk mengarahkan ke dashboard yang tepat
+            // Kunci Perbaikan: Gunakan redirect() biasa, jangan gunakan intended()
+            // Agar tujuannya dipaksa mutlak ke dashboard masing-masing tanpa mengingat history
             if (Auth::user()->role === 'admin') {
-                return redirect()->intended('admin/dashboard');
+                return redirect('admin/dashboard');
             }
-            return redirect()->intended('anggota/dashboard');
+            
+            return redirect('anggota/dashboard');
         }
 
         // Jika gagal, balikkan ke login dengan pesan error
