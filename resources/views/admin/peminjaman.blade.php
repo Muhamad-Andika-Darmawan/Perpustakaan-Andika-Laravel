@@ -114,20 +114,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($peminjamans as $index => $pinjam)
+                    @forelse($peminjamans as $index => $data)
                     <tr>
                         <td class="ps-3 fw-bold text-secondary">{{ $peminjamans->firstItem() + $index }}</td>
                         <td>
-                            <a href="javascript:void(0)" class="link-anggota btn-detail-user" data-id="{{ $pinjam->user_id }}">
+                            <a href="javascript:void(0)" class="link-anggota btn-detail-user" data-id="{{ $data->user_id }}">
                                 {{ $pinjam->user->nama_lengkap ?? 'Anggota Tidak Ditemukan' }}
                             </a>
                             <br><small class="text-muted">@<span>{{ $pinjam->user->username ?? '-' }}</span></small>
                         </td>
                         <td class="fw-semibold text-dark">{{ $pinjam->buku->judul ?? 'Buku Tidak Ditemukan' }}</td>
-                        <td>{{ $pinjam->tgl_pinjam ? \Carbon\Carbon::parse($pinjam->tgl_pinjam)->translatedFormat('d M Y') : '-' }}</td>
-                        <td>{{ $pinjam->tgl_kembali_seharusnya ? \Carbon\Carbon::parse($pinjam->tgl_kembali_seharusnya)->translatedFormat('d M Y') : '-' }}</td>
+                        <td>{{ $data->tgl_pinjam ? \Carbon\Carbon::parse($pinjam->tgl_pinjam)->translatedFormat('d M Y') : '-' }}</td>
+                        <td>{{ $data->tgl_kembali_seharusnya ? \Carbon\Carbon::parse($data->tgl_kembali_seharusnya)->translatedFormat('d M Y') : '-' }}</td>
                         <td>
-                            @if($pinjam->status == 'menunggu')
+                            @if($data->status == 'menunggu')
                                 <span class="badge bg-warning text-dark px-2 py-2" style="border-radius: 6px;"><i class="bi bi-hourglass-split me-1"></i> Menunggu ACC</span>
                             @else
                                 <span class="badge bg-info text-dark px-2 py-2" style="border-radius: 6px;"><i class="bi bi-book-half me-1"></i> Sedang Dipinjam</span>
@@ -135,7 +135,7 @@
                         </td>
                         <td>
                             <div class="d-flex justify-content-center gap-2">
-                                @if($pinjam->status == 'menunggu')
+                                @if($data->status == 'menunggu')
                                     <form action="{{ route('admin.peminjaman.acc', $data->id) }}" method="POST" onsubmit="return confirm('Setujui permintaan peminjaman buku ini?')">
                                         @csrf
                                         <button type="submit" class="btn-action btn-success-custom" title="ACC Peminjaman">

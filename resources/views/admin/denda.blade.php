@@ -84,7 +84,7 @@
                                 <span class="text-danger italic small">Belum Dikembalikan</span>
                             @endif
                         </td>
-                        <td class="text-danger fw-bold">Rp {{ number_format($denda->total_denda, 0, ',', '.') }}</td>
+                        <td class="text-danger fw-bold">Rp {{ number_format($denda->denda, 0, ',', '.') }}</td>
                         <td class="text-center">
                             <form action="{{ route('admin.denda.lunas', $denda->id) }}" method="POST" onsubmit="return confirm('Anggota sudah membayar cash dan denda dianggap lunas?')">
                                 @csrf

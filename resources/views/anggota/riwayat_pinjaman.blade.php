@@ -77,11 +77,11 @@
                 <tbody>
                     @forelse($riwayats as $data)
                         @php
-                            // Perhitungan denda keterlambatan berjalan
-                            $hariIni = \Carbon\Carbon::now()->startOfDay();
-                            $batasKembali = \Carbon\Carbon::parse($data->tanggal_pengembalian)->startOfDay();
-                            $terlambat = $hariIni->diffInDays($batasKembali, false) < 0;
-                            $selisihHari = abs($hariIni->diffInDays($batasKembali, false));
+                            $tgl_kembali = \Carbon\Carbon::parse($data->tgl_kembali_seharusnya);
+                            $hari_ini = \Carbon\Carbon::now()->startOfDay();
+                            $terlambat = $hari_ini->gt($tgl_kembali);
+                            $selisihHari = $terlambat ? $hari_ini->diffInDays($tgl_kembali) : 0;
+                            $denda = $selisihHari * 1000;
                         @endphp
                         <tr>
                             <td>
@@ -100,11 +100,11 @@
                             </td>
 
                             <td class="text-muted small">
-                                {{ $data->tanggal_peminjaman ? \Carbon\Carbon::parse($data->tanggal_peminjaman)->translatedFormat('d/m/Y') : '-' }}
+                                {{ $data->tgl_pengajuan ? \Carbon\Carbon::parse($data->tgl_pengajuan)->translatedFormat('d/m/Y') : '-' }}
                             </td>
 
                             <td class="small fw-semibold {{ $tabaktif == 'dipinjam' && $terlambat ? 'text-danger' : 'text-muted' }}">
-                                {{ \Carbon\Carbon::parse($data->tanggal_pengembalian)->translatedFormat('d/m/Y') }}
+                                {{ \Carbon\Carbon::parse($data->tgl_kembali_seharusnya)->translatedFormat('d/m/Y') }}
                                 @if($tabaktif == 'dipinjam' && $terlambat)
                                     <span class="d-block text-danger badge bg-danger-subtle mt-1 small" style="font-size: 10px;">Telat {{ $selisihHari }} Hari</span>
                                 @endif
@@ -136,9 +136,10 @@
 
                             @if($tabaktif == 'menunggu')
                                 <td>
-                                    <form action="{{ route('anggota.pinjam.batal', $data->id) }}" method="POST" onsubmit="return confirm('Apakah kamu yakin ingin membatalkan pengajuan peminjaman buku ini?')">
+                                    <form action="{{ route('anggota.pinjam.batal', $data->id) }}" method="POST" onsubmit="return confirm('Apakah kamu yakin ingin membatalkan pengajuan peminjaman ini?')">
                                         @csrf
-                                        @method('DELETE') <button type="submit" class="btn btn-sm btn-danger px-3 shadow-sm" style="border-radius: 8px; font-weight: 500;">
+                                        @method('DELETE') 
+                                        <button type="submit" class="btn btn-sm btn-danger px-3 shadow-sm" style="border-radius: 8px; font-weight: 500;">
                                             <i class="bi bi-x-circle me-1"></i> Batal
                                         </button>
                                     </form>
@@ -146,7 +147,7 @@
                             @elseif($tabaktif == 'dipinjam')
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <a href="{{ route('anggota.peminjaman.struk', $riwayat->id) }}" class="btn btn-sm btn-outline-dark px-3 shadow-sm" style="border-radius: 8px; font-weight: 500;">
+                                        <a href="{{ route('anggota.peminjaman.struk', $data->id) }}" class="btn btn-sm btn-outline-dark px-3 shadow-sm" style="border-radius: 8px; font-weight: 500;">
                                             <i class="bi bi-download me-1"></i> Unduh Struk
                                         </a>
 
