@@ -145,12 +145,15 @@
                                 </td>
                             @elseif($tabaktif == 'dipinjam')
                                 <td>
-                                    <form action="#" method="POST" onsubmit="return confirm('Apakah kamu ingin mengajukan pengembalian buku ini?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-primary px-3 shadow-sm" style="border-radius: 8px; font-weight: 500; background-color: #0b1b35; border: none;">
-                                            <i class="bi bi-arrow-return-left me-1"></i> Kembalikan
-                                        </button>
-                                    </form>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('anggota.peminjaman.struk', $riwayat->id) }}" class="btn btn-sm btn-outline-dark px-3 shadow-sm" style="border-radius: 8px; font-weight: 500;">
+                                            <i class="bi bi-download me-1"></i> Unduh Struk
+                                        </a>
+
+                                        <span class="badge bg-light text-dark border d-flex align-items-center px-3" style="border-radius: 8px; font-weight: 500;">
+                                            <i class="bi bi-info-circle me-1 text-primary"></i> Kembalikan ke Admin
+                                        </span>
+                                    </div>
                                 </td>
                             @endif
                         </tr>

@@ -62,4 +62,113 @@ class PeminjamanController extends Controller
 
         return back()->with('success', 'Pengajuan peminjaman buku berhasil dibatalkan.');
     }
+
+    public function accPeminjaman($id)
+{
+    $peminjaman = Peminjaman::findOrFail($id);
+
+    // Keamanan: Pastikan status transaksi memang masih 'menunggu'
+    if ($peminjaman->status !== 'menunggu') {
+        return back()->with('error', 'Transaksi ini sudah diproses sebelumnya!');
+    }
+
+    $buku = $peminjaman->buku;
+
+    // Validasi ekstra: Pastikan stok fisik buku masih ada sebelum dikurangi
+    if ($buku->stok <= 0) {
+        return back()->with('error', 'Gagal ACC! Stok buku "' . $buku->judul . '" saat ini sedang kosong.');
+    }
+
+    // 1. Kurangi stok buku sebanyak 1
+    $buku->decrement('stok');
+
+    // 2. Update status transaksi menjadi 'dipinjam'
+    $peminjaman->update([
+        'status' => 'dipinjam'
+    ]);
+
+    return back()->with('success', 'Pengajuan peminjaman berhasil disetujui (ACC). Stok buku telah berkurang.');
+}
+
+/**
+ * Menolak Pengajuan Peminjaman oleh Admin
+ */
+public function tolakPeminjaman($id)
+{
+    $peminjaman = Peminjaman::findOrFail($id);
+
+    if ($peminjaman->status !== 'menunggu') {
+        return back()->with('error', 'Transaksi ini sudah diproses sebelumnya!');
+    }
+
+    // Update status transaksi menjadi 'ditolak' (stok tidak perlu berkurang)
+    $peminjaman->update([
+        'status' => 'ditolak'
+    ]);
+
+    return back()->with('success', 'Pengajuan peminjaman buku telah ditolak.');
+}
+
+/**
+ * Memproses Pengembalian Buku oleh Admin
+ */
+public function prosesPengembalian($id)
+{
+    $peminjaman = Peminjaman::findOrFail($id);
+
+    // Pastikan buku yang dikembalikan berstatus 'dipinjam'
+    if ($peminjaman->status !== 'dipinjam') {
+        return back()->with('error', 'Buku ini tidak dalam status sedang dipinjam!');
+    }
+
+    // 1. Tambah kembali stok buku sebanyak 1
+    $peminjaman->buku->increment('stok');
+
+    // 2. Update status transaksi menjadi 'kembali'
+    $peminjaman->update([
+        'status' => 'kembali'
+    ]);
+
+    return back()->with('success', 'Buku berhasil dikembalikan ke rak. Stok buku otomatis bertambah.');
+}
+
+/**
+ * Mengunduh Struk Bukti Peminjaman Resmi (Format file .txt)
+ */
+public function downloadStruk($id)
+{
+    $peminjaman = Peminjaman::with(['user', 'buku'])->findOrFail($id);
+
+    // Proteksi: Struk hanya boleh diunduh jika statusnya sudah di-ACC (dipinjam atau kembali)
+    if (!in_array($peminjaman->status, ['dipinjam', 'kembali'])) {
+        return back()->with('error', 'Struk belum diterbitkan karena pengajuan belum disetujui oleh admin.');
+    }
+
+    $text = "========================================\n";
+    $text .= "       STRUK BUKTI PEMINJAMAN BUKU      \n";
+    $text .= "            PERPUSTAKAAN ANDIKA         \n";
+    $text .= "========================================\n\n";
+    $text .= "ID Transaksi : " . $peminjaman->id . "\n";
+    $text .= "Nama Anggota : " . ($peminjaman->user->nama_lengkap ?? $peminjaman->user->name) . "\n";
+    $text .= "NISN         : " . ($peminjaman->user->nisn ?? '-') . "\n";
+    $text .= "Kelas/Jurusan: " . ($peminjaman->user->kelas ?? '-') . " " . ($peminjaman->user->jurusan ?? '') . "\n";
+    $text .= "----------------------------------------\n";
+    $text .= "Judul Buku   : " . $peminjaman->buku->judul . "\n";
+    $text .= "Penulis      : " . $peminjaman->buku->penulis . "\n";
+    $text .= "Penerbit     : " . $peminjaman->buku->penerbit . "\n";
+    $text .= "----------------------------------------\n";
+    $text .= "Tgl Pengajuan: " . Carbon::parse($peminjaman->tgl_pengajuan)->format('d-m-Y') . "\n";
+    $text .= "Batas Kembali: " . Carbon::parse($peminjaman->tgl_kembali_seharusnya)->format('d-m-Y') . "\n";
+    $text .= "Status Buku  : " . strtoupper($peminjaman->status) . " (DI-ACC ADMIN)\n\n";
+    $text .= "========================================\n";
+    $text .= "  * Bawa struk ini & tunjukkan kepada   \n";
+    $text .= "    admin saat mengembalikan buku.      \n";
+    $text .= "========================================\n";
+
+    $filename = "struk-peminjaman-" . $peminjaman->id . ".txt";
+
+    return response($text, 200)
+        ->header('Content-Type', 'text/plain')
+        ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+}
 }

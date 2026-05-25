@@ -181,9 +181,23 @@ Route::middleware('auth')->group(function () {
     
     // 2. Rute Unduh Struk (Tetap biarkan namanya anggota.peminjaman.struk)
     Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
-    
+
     // 3. Rute untuk membatalkan pengajuan peminjaman
     Route::delete('/anggota/pinjam/batal/{id}', [PeminjamanController::class, 'batalPinjam'])->name('anggota.pinjam.batal');
+});
+
+Route::middleware('auth')->group(function () {
+    // ... rute yang sudah ada sebelumnya ...
+
+    // RUTE UTK ADMIN: Proses ACC dan Tolak Peminjaman
+    Route::post('/admin/peminjaman/acc/{id}', [PeminjamanController::class, 'accPeminjaman'])->name('admin.peminjaman.acc');
+    Route::post('/admin/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolakPeminjaman'])->name('admin.peminjaman.tolak');
+
+    // RUTE UTK ADMIN: Proses Pengembalian Buku
+    Route::post('/admin/pengembalian/proses/{id}', [PeminjamanController::class, 'prosesPengembalian'])->name('admin.pengembalian.proses');
+
+    // RUTE UTK ANGGOTA: Unduh Struk Bukti Peminjaman (Pastikan nama route sesuai view)
+    Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
 });
 }
 );

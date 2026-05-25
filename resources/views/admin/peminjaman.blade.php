@@ -136,13 +136,13 @@
                         <td>
                             <div class="d-flex justify-content-center gap-2">
                                 @if($pinjam->status == 'menunggu')
-                                    <form action="{{ route('admin.peminjaman.acc', $pinjam->id) }}" method="POST" onsubmit="return confirm('Setujui permintaan peminjaman buku ini?')">
+                                    <form action="{{ route('admin.peminjaman.acc', $data->id) }}" method="POST" onsubmit="return confirm('Setujui permintaan peminjaman buku ini?')">
                                         @csrf
                                         <button type="submit" class="btn-action btn-success-custom" title="ACC Peminjaman">
                                             <i class="bi bi-check-lg"></i>
                                         </button>
                                     </form>
-                                    <form action="{{ route('admin.peminjaman.tolak', $pinjam->id) }}" method="POST" onsubmit="return confirm('Tolak permintaan peminjaman buku ini?')">
+                                    <form action="{{ route('admin.peminjaman.tolak', $data->id) }}" method="POST" onsubmit="return confirm('Tolak permintaan peminjaman buku ini?')">
                                         @csrf
                                         <button type="submit" class="btn-action btn-danger-custom" title="Tolak Permintaan">
                                             <i class="bi bi-x-lg"></i>
