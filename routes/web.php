@@ -172,5 +172,18 @@ Route::get('/anggota/riwayat-pinjaman', function (Illuminate\Http\Request $reque
 
     return view('anggota.riwayat_pinjaman', compact('riwayats', 'tabaktif'));
 })->name('anggota.riwayat_pinjaman');
+
+Route::middleware('auth')->group(function () {
+    // ... rute yang sudah ada sebelumnya ...
+
+    // 1. Rute Aksi Peminjaman (Ubah namanya jadi anggota.pinjam.proses)
+    Route::post('/anggota/pinjam/{bukuId}', [PeminjamanController::class, 'pinjamBuku'])->name('anggota.pinjam.proses');
+    
+    // 2. Rute Unduh Struk (Tetap biarkan namanya anggota.peminjaman.struk)
+    Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
+    
+    // 3. Rute untuk membatalkan pengajuan peminjaman
+    Route::delete('/anggota/pinjam/batal/{id}', [PeminjamanController::class, 'batalPinjam'])->name('anggota.pinjam.batal');
+});
 }
 );

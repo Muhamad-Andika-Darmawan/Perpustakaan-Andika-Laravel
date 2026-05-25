@@ -142,9 +142,12 @@
 
                         <div class="mt-auto">
                             @if($buku->stok > 0)
-                                <a href="#" class="btn btn-warning w-100 shadow-sm" style="border-radius: 12px; padding: 10px; font-weight: bold; color: #0b1b35;">
-                                    <i class="bi bi-cart-plus me-2"></i>PINJAM SEKARANG
-                                </a>
+                                <form action="{{ route('anggota.pinjam.proses', $buku->id) }}" method="POST" onsubmit="return confirm('Apakah kamu yakin ingin mengajukan peminjaman buku ini?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold" style="background-color: #0b1b35; border: none; border-radius: 12px; padding: 8px;">
+                                        <i class="bi bi-journal-plus me-1"></i> Pinjam Sekarang
+                                    </button>
+                                </form>
                             @else
                                 <button class="btn btn-secondary w-100 disabled" style="border-radius: 12px; padding: 10px;">
                                     STOK HABIS
@@ -199,9 +202,12 @@
                             <div class="mt-4 row g-2">
                                 <div class="col-8">
                                     @if($buku->stok > 0)
-                                        <a href="#" class="btn btn-warning w-100 shadow-sm" style="border-radius:12px; font-weight: bold; color: #0b1b35;">
-                                            PINJAM SEKARANG
-                                        </a>
+                                        <form action="{{ route('anggota.pinjam.proses', $buku->id) }}" method="POST" onsubmit="return confirm('Apakah kamu yakin ingin mengajukan peminjaman buku ini?')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-warning w-100 shadow-sm" style="border-radius:12px; font-weight: bold; color: #0b1b35;">
+                                                PINJAM SEKARANG
+                                            </button>
+                                        </form>
                                     @endif
                                 </div>
                                 <div class="col-4">

@@ -3,6 +3,21 @@
 @section('title', 'Riwayat & Pinjaman Buku')
 
 @section('content')
+
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius: 10px;">
+        <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius: 10px;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 <div class="container-fluid p-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -71,7 +86,7 @@
                         <tr>
                             <td>
                                 @if($data->buku->cover)
-                                    <img src="{{ asset('storage/' . $data->buku->cover) }}" alt="Cover" class="img-fluid rounded" style="width: 50px; height: 65px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <img src="{{ asset('storage/covers/' . $data->buku->cover) }}" alt="Cover" class="img-fluid rounded" style="width: 50px; height: 65px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 @else
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 65px; color: #cbd5e1;">
                                         <i class="bi bi-book" style="font-size: 20px;"></i>
@@ -121,10 +136,9 @@
 
                             @if($tabaktif == 'menunggu')
                                 <td>
-                                    <form action="#" method="POST" onsubmit="return confirm('Apakah kamu yakin ingin membatalkan pengajuan pinjaman buku ini?')">
+                                    <form action="{{ route('anggota.pinjam.batal', $data->id) }}" method="POST" onsubmit="return confirm('Apakah kamu yakin ingin membatalkan pengajuan peminjaman buku ini?')">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-3" style="border-radius: 8px; font-weight: 500;">
+                                        @method('DELETE') <button type="submit" class="btn btn-sm btn-danger px-3 shadow-sm" style="border-radius: 8px; font-weight: 500;">
                                             <i class="bi bi-x-circle me-1"></i> Batal
                                         </button>
                                     </form>
