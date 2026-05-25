@@ -37,10 +37,7 @@ Route::middleware('auth')->group(function () {
     
 
     // Rute untuk Dashboard Anggota
-    Route::get('/anggota/dashboard', function () {
-        // Sementara kita pasang angka statis dulu seperti rencana simulasimu
-        return view('anggota.dashboard');
-    })->name('anggota.dashboard')->middleware('auth');
+    Route::get('/anggota/dashboard', [PeminjamanController::class, 'dashboardAnggota'])->name('anggota.dashboard');
 
     // Proses Keluar Aplikasi
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -184,6 +181,8 @@ Route::middleware('auth')->group(function () {
 
     // 3. Rute untuk membatalkan pengajuan peminjaman
     Route::delete('/anggota/pinjam/batal/{id}', [PeminjamanController::class, 'batalPinjam'])->name('anggota.pinjam.batal');
+
+    Route::post('/anggota/peminjaman/kembali/{id}', [PeminjamanController::class, 'kembaliBukuMandiri'])->name('anggota.peminjaman.kembali');
 });
 
 Route::middleware('auth')->group(function () {
@@ -194,7 +193,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolakPeminjaman'])->name('admin.peminjaman.tolak');
 
     // RUTE UTK ADMIN: Proses Pengembalian Buku
-    Route::post('/admin/pengembalian/proses/{id}', [PeminjamanController::class, 'prosesPengembalian'])->name('admin.pengembalian.proses');
+    // Route::post('/admin/pengembalian/proses/{id}', [PeminjamanController::class, 'prosesPengembalian'])->name('admin.pengembalian.proses');
 
     // RUTE UTK ANGGOTA: Unduh Struk Bukti Peminjaman (Pastikan nama route sesuai view)
     Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');

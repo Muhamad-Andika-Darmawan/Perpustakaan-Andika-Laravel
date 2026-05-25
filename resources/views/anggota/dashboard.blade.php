@@ -48,16 +48,32 @@
 
     <div class="custom-card mb-4">
         <h5 class="fw-bold mb-3">Informasi Penting</h5>
-        
-        <div class="alert alert-success border-0 mb-0 p-3" style="border-radius: 12px;">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-check-circle-fill me-3 fs-4 text-success"></i>
-                <div>
-                    <strong class="d-block mb-1">Akun Kamu Bersih! ✨</strong>
-                    <span class="text-muted small">Tidak ada denda atau tunggakan pengembalian yang perlu dibayar. Teruslah membaca dan kembalikan buku tepat waktu ya! Semangat belajarnya! 💪🔥</span>
+
+        @if(isset($pinjamanAktif) && $pinjamanAktif->isNotEmpty())
+            <div class="alert alert-warning border-0 mb-0 p-3" style="border-radius: 12px;">
+                <strong class="d-block mb-2 text-warning-emphasis">Kamu memiliki pinjaman buku aktif! 📖</strong>
+                <div class="list-group list-group-flush bg-transparent">
+                    @foreach($pinjamanAktif as $pinjam)
+                        <div class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center p-1 px-0">
+                            <span class="small text-dark">- {{ $pinjam->buku->judul }}</span>
+                            <a href="{{ route('anggota.peminjaman.struk', $pinjam->id) }}" class="btn btn-xs btn-outline-dark px-2 py-1 shadow-sm" style="border-radius: 6px; font-size: 12px; font-weight: 500;">
+                                <i class="bi bi-download me-1"></i> Unduh Struk
+                            </a>
+                        </div>
+                    @endforeach
                 </div>
             </div>
-        </div>
+        @else
+            <div class="alert alert-success border-0 mb-0 p-3" style="border-radius: 12px;">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-3 fs-4 text-success"></i>
+                    <div>
+                        <strong class="d-block mb-1">Akun Kamu Bersih! ✨</strong>
+                        <span class="text-muted small">Tidak ada denda atau tunggakan pengembalian yang perlu dibayar. Teruslah membaca dan kembalikan buku tepat waktu ya! Semangat belajarnya! 💪🔥</span>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <div class="row g-3">

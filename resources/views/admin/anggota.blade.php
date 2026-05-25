@@ -9,6 +9,16 @@
 .btn-edit{background:#f59e0b;color:white;}
 .avatar-table{width:40px;height:40px;border-radius:50%;object-fit:cover;}
 .avatar-placeholder{width:40px;height:40px;border-radius:50%;background:#e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;font-weight:bold;margin:auto;}
+
+/* Style tambahan khusus link nama anggota agar interaktif saat di-hover */
+.link-anggota {
+    color: #1e293b;
+    text-decoration: none;
+}
+.link-anggota:hover {
+    color: #f59e0b !important;
+    text-decoration: underline;
+}
 </style>
 
 <div class="container-fluid p-0">
@@ -100,7 +110,9 @@
                             @endif
                         </td>
                         <td>
-                            <span class="fw-bold text-dark" style="font-size: 14px;">{{ $user->nama_lengkap }}</span>
+                            <a href="#" class="link-anggota fw-bold text-dark" style="font-size: 14px;" data-bs-toggle="modal" data-bs-target="#modalDetailUser{{ $user->id }}">
+                                {{ $user->nama_lengkap }}
+                            </a>
                         </td>
                         <td>
                             <span class="text-dark d-block fw-medium">{{ $user->username }}</span>
@@ -172,6 +184,78 @@
     </div>
 </div>
 
+@foreach($users as $user)
+<div class="modal fade" id="modalDetailUser{{ $user->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+            <div class="modal-body p-4 text-center">
+                <div class="position-relative mb-3">
+                    @if($user->foto_profil)
+                        <img src="{{ asset('storage/profil/' . $user->foto_profil) }}" alt="Foto Profil" class="rounded-circle shadow-sm border" style="width: 90px; height: 90px; object-fit: cover;">
+                    @else
+                        <div class="bg-secondary text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mx-auto" style="width: 90px; height: 90px; font-size: 32px; font-weight: bold;">
+                            {{ strtoupper(substr($user->nama_lengkap, 0, 1)) }}
+                        </div>
+                    @endif
+                    <span class="badge position-absolute bottom-0 start-50 translate-middle-x px-3 py-1 {{ $user->role === 'admin' ? 'bg-danger text-white' : 'bg-primary text-white' }} border border-2 border-white small fw-bold" style="border-radius: 20px; font-size: 10px; transform: translate(-50%, 20%);">
+                        {{ $user->role === 'admin' ? 'STAFF ADMIN' : 'ANGGOTA' }}
+                    </span>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-1 mt-2">{{ $user->nama_lengkap }}</h5>
+                <p class="text-muted small fw-semibold mb-4">{{ '@' . $user->username }}</p>
+
+                {{-- KONDISI JIKA USER ADALAH ANGGOTA: TAMPILKAN BUKU DIPINJAM & TOTAL DENDA --}}
+                @if($user->role !== 'admin')
+                <div class="card bg-light border-0 p-3 mb-4 text-start" style="border-radius: 10px;">
+                    <table class="table table-borderless table-sm m-0 small text-secondary" style="font-size: 12px;">
+                        <tr>
+                            <td class="fw-medium" style="width: 120px;">Buku Dipinjam</td>
+                            <td style="width: 15px;">:</td>
+                            <td class="text-dark fw-semibold">
+                                {{ \App\Models\Peminjaman::where('user_id', $user->id)->where('status', 'dipinjam')->count() }} Buku Aktif
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-medium">Total Denda</td>
+                            <td>:</td>
+                            <td>
+                                @php
+                                    $totalDendaUser = \App\Models\Peminjaman::where('user_id', $user->id)->sum('total_denda');
+                                @endphp
+                                @if($totalDendaUser > 0)
+                                    <span class="text-danger fw-bold">Rp {{ number_format($totalDendaUser, 0, ',', '.') }}</span>
+                                @else
+                                    <span class="text-success fw-semibold">Rp 0 (Bersih ✨)</span>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                @endif
+
+                {{-- TENTANG PENGGUNA (ABOUT ME) --}}
+                <div class="mb-4 text-start px-1">
+                    <h6 class="fw-bold text-dark small mb-1">Tentang Pengguna :</h6>
+                    <p class="text-muted small m-0 style-italic" style="line-height: 1.5; font-size: 12px;">
+                        @if($user->role === 'admin')
+                            {{ $user->about_me ?? 'Halo! Saya adalah Staff Administrator yang bertugas mengelola sirkulasi buku dan manajemen anggota Perpustakaan Digital.' }}
+                        @else
+                            {{ $user->about_me ?? 'Halo! Saya adalah salah satu anggota aktif di Perpustakaan Digital.' }}
+                        @endif
+                    </p>
+                </div>
+
+                <button type="button" class="btn btn-secondary w-100 py-2 fw-bold" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 13px;">
+                    Tutup Profil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
+
+
 <div class="modal fade" id="modalTambahAnggota" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow" style="border-radius: 12px;">
@@ -241,7 +325,7 @@
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="form-label small fw-bold text-secondary">No. Telepon / WhatsApp</label>
-                            <input type="text" name="no_hp" id="edit_telp" class="form-control" placeholder="Contoh : 081234567890" style="border-radius: 8px;">
+                            <input type="text" name="no_hp" id="tambah_telp" class="form-control" placeholder="Contoh : 081234567890" style="border-radius: 8px;">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -267,6 +351,7 @@
         </div>
     </div>
 </div>
+
 
 <div class="modal fade" id="modalEditAnggota" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">

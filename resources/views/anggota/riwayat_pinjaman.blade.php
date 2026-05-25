@@ -70,7 +70,7 @@
                             <th>Status / Denda</th>
                         @endif
                         @if($tabaktif == 'menunggu' || $tabaktif == 'dipinjam')
-                            <th style="width: 140px;">Aksi</th>
+                            <th style="width: 220px;">Aksi</th>
                         @endif
                     </tr>
                 </thead>
@@ -146,15 +146,16 @@
                                 </td>
                             @elseif($tabaktif == 'dipinjam')
                                 <td>
-                                    <div class="d-flex gap-2">
-                                        <a href="{{ route('anggota.peminjaman.struk', $data->id) }}" class="btn btn-sm btn-outline-dark px-3 shadow-sm" style="border-radius: 8px; font-weight: 500;">
-                                            <i class="bi bi-download me-1"></i> Unduh Struk
-                                        </a>
-
-                                        <span class="badge bg-light text-dark border d-flex align-items-center px-3" style="border-radius: 8px; font-weight: 500;">
-                                            <i class="bi bi-info-circle me-1 text-primary"></i> Kembalikan ke Admin
-                                        </span>
-                                    </div>
+                                    <form action="{{ route('anggota.peminjaman.kembali', $data->id) }}" method="POST" enctype="multipart/form-data" id="form-kembali-{{ $data->id }}">
+                                        @csrf
+                                        <div class="d-grid gap-2">
+                                            <input type="file" name="struk_kembali" id="struk-{{ $data->id }}" class="form-control form-control-sm" style="font-size: 11px;">
+                                            
+                                            <button type="button" class="btn btn-sm btn-success w-100" onclick="validasiPengembalian({{ $data->id }})" style="border-radius: 6px; font-size: 12px; font-weight: 600; padding: 6px;">
+                                                <i class="bi bi-arrow-return-left"></i> Kembalikan Buku
+                                            </button>
+                                        </div>
+                                    </form>
                                 </td>
                             @endif
                         </tr>
@@ -175,4 +176,22 @@
         {{ $riwayats->links() }}
     </div>
 </div>
+
+<script>
+function validasiPengembalian(id) {
+    const fileInput = document.getElementById('struk-' + id);
+    const form = document.getElementById('form-kembali-' + id);
+
+    if (fileInput.files.length > 0) {
+        // Skenario A: Ada file struk, langsung gas submit sukses
+        form.submit();
+    } else {
+        // Skenario B: Tanpa file struk, cegat dengan warning denda
+        if (confirm("Kamu mengembalikan buku tanpa menyertakan struk. Jika dilanjutkan, kamu akan dikenakan denda! Apakah kamu tetap yakin?")) {
+            form.submit();
+        }
+    }
+}
+</script>
+
 @endsection 

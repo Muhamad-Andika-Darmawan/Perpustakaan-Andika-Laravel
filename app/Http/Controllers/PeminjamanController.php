@@ -7,6 +7,7 @@ use App\Models\Peminjaman;
 use App\Models\Buku;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PeminjamanController extends Controller
 {
@@ -63,36 +64,17 @@ class PeminjamanController extends Controller
         return back()->with('success', 'Pengajuan peminjaman buku berhasil dibatalkan.');
     }
 
-    // Unduh Struk Peminjaman Format TXT/Nota
+    // Unduh Struk Peminjaman Format PDF
     public function downloadStruk($id)
-    {
-        $peminjaman = Peminjaman::with(['user', 'buku'])->findOrFail($id);
+{
+    $peminjaman = Peminjaman::with(['user', 'buku'])->findOrFail($id);
 
-        $text  = "========================================\n";
-        $text .= "       STRUK PEMINJAMAN PERPUSTAKAAN    \n";
-        $text .= "========================================\n\n";
-        $text .= "ID Transaksi : " . $peminjaman->id . "\n";
-        $text .= "Nama Anggota : " . ($peminjaman->user->nama_lengkap ?? $peminjaman->user->name) . "\n";
-        $text .= "NISN         : " . ($peminjaman->user->nisn ?? '-') . "\n";
-        $text .= "Kelas/Jurusan: " . ($peminjaman->user->kelas ?? '-') . " " . ($peminjaman->user->jurusan ?? '') . "\n";
-        $text .= "----------------------------------------\n";
-        $text .= "Judul Buku   : " . $peminjaman->buku->judul . "\n";
-        $text .= "Penulis      : " . $peminjaman->buku->penulis . "\n";
-        $text .= "Penerbit     : " . $peminjaman->buku->penerbit . "\n";
-        $text .= "----------------------------------------\n";
-        $text .= "Tgl Pengajuan: " . Carbon::parse($peminjaman->tgl_pengajuan)->format('d-m-Y') . "\n";
-        $text .= "Batas Kembali: " . Carbon::parse($peminjaman->tgl_kembali_seharusnya)->format('d-m-Y') . "\n";
-        $text .= "Status Buku  : " . strtoupper($peminjaman->status) . "\n\n";
-        $text .= "========================================\n";
-        $text .= " Harap kembalikan buku tepat waktu ya!  \n";
-        $text .= "========================================\n";
-
-        $filename = "struk_peminjaman_" . $peminjaman->id . ".txt";
-
-        return response($text, 200)
-            ->header('Content-Type', 'text/plain')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
-    }
+    // Kita arahkan ke view khusus struk PDF
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('anggota.peminjaman_pdf', compact('peminjaman'));
+    
+    // Download file dengan nama yang rapi
+    return $pdf->download('struk_pinjam_' . $peminjaman->id . '.pdf');
+}
 
 
     // =========================================================================
@@ -101,46 +83,46 @@ class PeminjamanController extends Controller
 
     // Menampilkan Halaman Transaksi Peminjaman (Menunggu ACC)
     public function index(Request $request)
-    {
-        // Tangkap inputan search dan filter dari form UI
-        $search = $request->input('search');
-        $filter_tingkat = $request->input('filter_tingkat');
-        $filter_jurusan = $request->input('filter_jurusan');
+{
+    // Tangkap inputan search dan filter dari form UI
+    $search = $request->input('search');
+    $filter_tingkat = $request->input('filter_tingkat');
+    $filter_jurusan = $request->input('filter_jurusan');
 
-        // Query dasar untuk status 'menunggu'
-        $query = Peminjaman::with(['user', 'buku'])->where('status', 'menunggu');
+    // UBAH DI SINI: Menggunakan whereIn agar status 'menunggu' DAN 'dipinjam' masuk ke halaman ini
+    $query = Peminjaman::with(['user', 'buku'])->whereIn('status', ['menunggu', 'dipinjam']);
 
-        // Logika Fitur Pencarian (Nama Anggota / Judul Buku)
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('user', function($u) use ($search) {
-                    $u->where('nama_lengkap', 'like', "%{$search}%");
-                })->orWhereHas('buku', function($b) use ($search) {
-                    $b->where('judul', 'like', "%{$search}%");
-                });
+    // Logika Fitur Pencarian (Nama Anggota / Judul Buku)
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->whereHas('user', function($u) use ($search) {
+                $u->where('nama_lengkap', 'like', "%{$search}%");
+            })->orWhereHas('buku', function($b) use ($search) {
+                $b->where('judul', 'like', "%{$search}%");
             });
-        }
-
-        // Logika Fitur Filter Tingkat Kelas (10, 11, 12)
-        if ($filter_tingkat) {
-            $query->whereHas('user', function($q) use ($filter_tingkat) {
-                $q->where('kelas', $filter_tingkat);
-            });
-        }
-
-        // Logika Fitur Filter Jurusan (RPL, TKJ, dll)
-        if ($filter_jurusan) {
-            $query->whereHas('user', function($q) use ($filter_jurusan) {
-                $q->where('jurusan', $filter_jurusan);
-            });
-        }
-
-        // Eksekusi pagination dan pertahankan query string di URL browser
-        $peminjamans = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-
-        // Kirim SEMUA variabel yang dibutuhkan oleh peminjaman.blade.php
-        return view('admin.peminjaman', compact('peminjamans', 'search', 'filter_tingkat', 'filter_jurusan'));
+        });
     }
+
+    // Logika Fitur Filter Tingkat Kelas (10, 11, 12)
+    if ($filter_tingkat) {
+        $query->whereHas('user', function($q) use ($filter_tingkat) {
+            $q->where('kelas', $filter_tingkat);
+        });
+    }
+
+    // Logika Fitur Filter Jurusan (RPL, TKJ, dll)
+    if ($filter_jurusan) {
+        $query->whereHas('user', function($q) use ($filter_jurusan) {
+            $q->where('jurusan', $filter_jurusan);
+        });
+    }
+
+    // Eksekusi pagination dan pertahankan query string di URL browser
+    $peminjamans = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+
+    // Kirim SEMUA variabel yang dibutuhkan oleh peminjaman.blade.php
+    return view('admin.peminjaman', compact('peminjamans', 'search', 'filter_tingkat', 'filter_jurusan'));
+}
 
     // Menampilkan Halaman Transaksi Pengembalian (Buku yang sedang dipinjam)
     public function indexPengembalian(Request $request)
@@ -179,7 +161,10 @@ class PeminjamanController extends Controller
         }
 
         // Eksekusi pagination dan pertahankan query string di URL browser
-        $pengembalians = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $pengembalians = Peminjaman::where('status', 'kembali')
+        ->with(['user', 'buku'])
+        ->orderBy('id', 'desc')
+        ->paginate(10);
 
         // Kirim SEMUA variabel yang dibutuhkan oleh pengembalian.blade.php
         return view('admin.pengembalian', compact('pengembalians', 'search', 'filter_tingkat', 'filter_jurusan'));
@@ -206,26 +191,25 @@ class PeminjamanController extends Controller
 
     // Proses Admin klik tombol ACC (Stok Berkurang 1)
     public function accPeminjaman($id)
-    {
-        $peminjaman = Peminjaman::findOrFail($id);
-        $buku = Buku::findOrFail($peminjaman->buku_id);
+{
+    $peminjaman = Peminjaman::findOrFail($id);
+    $buku = Buku::findOrFail($peminjaman->buku_id);
 
-        if ($buku->stok <= 0) {
-            return back()->with('error', 'Gagal ACC, stok buku saat ini kosong!');
-        }
-
-        // Kurangi stok buku
-        $buku->decrement('stok');
-
-        // Ubah status transaksi menjadi dipinjam
-        $peminjaman->update([
-            'status' => 'dipinjam',
-            'tgl_pengajuan' => Carbon::now()->toDateString(), // Mulai hitung tanggal pinjam aktif hari ini
-            'tgl_kembali_seharusnya' => Carbon::now()->addDays(7)->toDateString()
-        ]);
-
-        return back()->with('success', 'Peminjaman berhasil di-ACC! Stok buku berkurang.');
+    if ($buku->stok <= 0) {
+        return back()->with('error', 'Stok buku habis!');
     }
+
+    $buku->decrement('stok');
+
+    // Update tanggal pengajuan & deadline 14 hari (2 minggu) dari hari ini
+    $peminjaman->update([
+        'status' => 'dipinjam',
+        'tgl_pengajuan' => \Carbon\Carbon::now()->toDateString(), 
+        'tgl_kembali_seharusnya' => \Carbon\Carbon::now()->addDays(14)->toDateString()
+    ]);
+
+    return back()->with('success', 'Peminjaman berhasil di-ACC! Status berubah menjadi Sedang Dipinjam.');
+}
 
     // Proses Admin klik tombol Tolak
     public function tolakPeminjaman($id)
@@ -261,5 +245,61 @@ class PeminjamanController extends Controller
         $peminjaman->update(['denda' => 0]);
 
         return back()->with('success', 'Denda anggota berhasil dilunasi.');
+    }
+
+    // =========================================================================
+    // TAMBAHAN FITUR BARU SESUAI FLOW MANDIRI ANGGOTA
+    // =========================================================================
+
+    /**
+     * Menampilkan Dashboard Anggota dengan data Pinjaman Aktif untuk Struk
+     */
+    public function dashboardAnggota()
+    {
+        $user = Auth::user();
+
+        // Hitung counter untuk widget atas dashboard
+        $countSelesai = Peminjaman::where('user_id', $user->id)->where('status', 'kembali')->count();
+        
+        // Ambil semua daftar pinjaman yang berstatus 'dipinjam' untuk ditaruh di kartu "Informasi Penting"
+        $pinjamanAktif = Peminjaman::where('user_id', $user->id)
+            ->where('status', 'dipinjam')
+            ->with('buku')
+            ->get();
+            
+        $countDipinjam = $pinjamanAktif->count();
+
+        return view('anggota.dashboard', compact('countDipinjam', 'countSelesai', 'pinjamanAktif'));
+    }
+
+    /**
+     * Proses Pengembalian Buku Mandiri oleh Anggota beserta Upload Bukti Struk Opsional
+     */
+    public function kembaliBukuMandiri(Request $request, $id)
+    {
+        $peminjaman = Peminjaman::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'dipinjam')
+            ->firstOrFail();
+
+        $buku = Buku::findOrFail($peminjaman->buku_id);
+
+        // Logika penanganan file struk jika diunggah (Skenario A)
+        if ($request->hasFile('struk_kembali')) {
+            $file = $request->file('struk_kembali');
+            $namaFile = time() . '_kembali_' . Auth::id() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('storage/struk_kembali'), $namaFile);
+        }
+
+        // Eksekusi pembaruan data transaksi langsung menjadi kembali
+        $peminjaman->update([
+            'status' => 'kembali',
+            'total_denda' => 0 
+        ]);
+
+        // Otomatis kembalikan jumlah stok fisik buku (+1)
+        $buku->increment('stok');
+
+        return back()->with('success', 'Buku "' . $buku->judul . '" berhasil dikembalikan secara mandiri! Stok buku otomatis bertambah.');
     }
 }

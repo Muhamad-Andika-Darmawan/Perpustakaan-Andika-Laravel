@@ -101,64 +101,79 @@
 
     <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-secondary">
+            <table class="table table-hover align-middle m-0">
+                <thead class="bg-light text-secondary fw-semibold">
                     <tr>
-                        <th class="text-center" width="5%">No</th>
-                        <th class="text-center">Nama Anggota</th>
-                        <th class="text-center"Judul Buku</th>
-                        <th class="text-center">Tanggal Pinjam</th>
-                        <th class="text-center">Batas Kembali</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center" width="12%">Aksi</th>
+                        <th style="width: 50px;">No</th>
+                        <th style="width: 80px;" class="text-center">Profil</th>
+                        <th>Nama Anggota</th>
+                        <th>Judul Buku</th>
+                        <th>Tgl Pinjam</th>
+                        <th>Tgl Kembali</th>
+                        <th class="text-center" style="width: 180px;">Status / Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($peminjamans as $index => $data)
+                    @forelse($peminjamans as $pinjam)
                     <tr>
-                        <td class="ps-3 fw-bold text-secondary">{{ $peminjamans->firstItem() + $index }}</td>
-                        <td>
-                            <a href="javascript:void(0)" class="link-anggota btn-detail-user" data-id="{{ $data->user_id }}">
-                                {{ $pinjam->user->nama_lengkap ?? 'Anggota Tidak Ditemukan' }}
-                            </a>
-                            <br><small class="text-muted">@<span>{{ $pinjam->user->username ?? '-' }}</span></small>
-                        </td>
-                        <td class="fw-semibold text-dark">{{ $pinjam->buku->judul ?? 'Buku Tidak Ditemukan' }}</td>
-                        <td>{{ $data->tgl_pinjam ? \Carbon\Carbon::parse($pinjam->tgl_pinjam)->translatedFormat('d M Y') : '-' }}</td>
-                        <td>{{ $data->tgl_kembali_seharusnya ? \Carbon\Carbon::parse($data->tgl_kembali_seharusnya)->translatedFormat('d M Y') : '-' }}</td>
-                        <td>
-                            @if($data->status == 'menunggu')
-                                <span class="badge bg-warning text-dark px-2 py-2" style="border-radius: 6px;"><i class="bi bi-hourglass-split me-1"></i> Menunggu ACC</span>
+                        <td>{{ $loop->iteration + ($peminjamans->currentPage() - 1) * $peminjamans->perPage() }}</td>
+                        
+                        <td class="text-center">
+                            @if($pinjam->user && $pinjam->user->foto_profil)
+                                <img src="{{ asset('storage/' . $pinjam->user->foto_profil) }}" alt="Profil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #e2e8f0;">
                             @else
-                                <span class="badge bg-info text-dark px-2 py-2" style="border-radius: 6px;"><i class="bi bi-book-half me-1"></i> Sedang Dipinjam</span>
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 40px; height: 40px; font-weight: 600;">
+                                    {{ strtoupper(substr($pinjam->user->nama_lengkap ?? 'A', 0, 1)) }}
+                                </div>
                             @endif
                         </td>
+
                         <td>
-                            <div class="d-flex justify-content-center gap-2">
-                                @if($data->status == 'menunggu')
-                                    <form action="{{ route('admin.peminjaman.acc', $data->id) }}" method="POST" onsubmit="return confirm('Setujui permintaan peminjaman buku ini?')">
+                            <a href="#" class="link-anggota" data-bs-toggle="modal" data-bs-target="#modalDetailAnggota{{ $pinjam->id }}">
+                                {{ $pinjam->user->nama_lengkap ?? 'Nama Tidak Ditemukan' }}
+                            </a>
+                        </td>
+
+                        <td>
+                            <span class="fw-semibold text-dark">{{ $pinjam->buku->judul ?? 'Buku Tidak Ditemukan' }}</span>
+                        </td>
+
+                        <td>
+                            {{ $pinjam->status == 'dipinjam' && $pinjam->tgl_pengajuan ? \Carbon\Carbon::parse($pinjam->tgl_pengajuan)->format('d/m/Y') : '-' }}
+                        </td>
+
+                        <td>
+                            {{ $pinjam->status == 'dipinjam' && $pinjam->tgl_kembali_seharusnya ? \Carbon\Carbon::parse($pinjam->tgl_kembali_seharusnya)->format('d/m/Y') : '-' }}
+                        </td>
+
+                        <td class="text-center">
+                            @if($pinjam->status == 'menunggu')
+                                <div class="d-flex justify-content-center gap-2">
+                                    <form action="{{ route('admin.peminjaman.acc', $pinjam->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="btn-action btn-success-custom" title="ACC Peminjaman">
+                                        <button type="submit" class="btn btn-sm btn-success-custom btn-action" title="ACC Peminjaman">
                                             <i class="bi bi-check-lg"></i>
                                         </button>
                                     </form>
-                                    <form action="{{ route('admin.peminjaman.tolak', $data->id) }}" method="POST" onsubmit="return confirm('Tolak permintaan peminjaman buku ini?')">
+                                    <form action="{{ route('admin.peminjaman.tolak', $pinjam->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menolak pengajuan ini?')">
                                         @csrf
-                                        <button type="submit" class="btn-action btn-danger-custom" title="Tolak Permintaan">
+                                        <button type="submit" class="btn btn-sm btn-danger-custom btn-action" title="Tolak Peminjaman">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </form>
-                                @else
-                                    <span class="text-muted small fw-medium"><i class="bi bi-patch-check-fill text-success"></i> Aktif</span>
-                                @endif
-                            </div>
+                                </div>
+                            @elseif($pinjam->status == 'dipinjam')
+                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2" style="border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                    <i class="bi bi-hourglass-split me-1"></i> Sedang Dipinjam
+                                </span>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
                         <td colspan="7" class="text-center text-muted py-5">
-                            <i class="bi bi-folder-x fs-1 d-block mb-2 text-secondary"></i>
-                            Tidak ada permintaan peminjaman aktif saat ini.
+                            <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                            Belum ada data pengajuan atau buku aktif yang dipinjam.
                         </td>
                     </tr>
                     @endforelse
@@ -244,4 +259,88 @@
         });
     });
 </script>
+
+<div class="modal fade" id="modalDetailAnggota{{ $pinjam->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                                <div class="modal-body p-4 text-center">
+                                    
+                                    <div class="position-relative mb-3">
+                                        @if($pinjam->user && $pinjam->user->foto_profil)
+                                            <img src="{{ asset('storage/' . $pinjam->user->foto_profil) }}" alt="Foto Profil" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
+                                        @else
+                                            <div class="bg-dark text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; font-size: 36px; font-weight: bold; border: 3px solid #fff;">
+                                                {{ strtoupper(substr($pinjam->user->nama_lengkap ?? 'A', 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <span class="badge position-absolute bottom-0 start-50 translate-middle-x px-3 py-1 bg-dark text-warning border border-2 border-white small fw-bold" style="border-radius: 20px; font-size: 11px;">
+                                            {{ strtoupper($pinjam->user->role ?? 'ANGGOTA') }}
+                                        </span>
+                                    </div>
+
+                                    <h5 class="fw-bold text-dark mb-1">{{ $pinjam->user->nama_lengkap ?? 'Nama Tidak Ditemukan' }}</h5>
+                                    <p class="text-warning small fw-semibold mb-4">@​{{ $pinjam->user->username ?? 'username' }}</p>
+
+                                    <div class="card bg-light border-0 p-3 mb-4 text-start" style="border-radius: 12px;">
+                                        <table class="table table-borderless table-sm m-0 small text-secondary">
+                                            <tr>
+                                                <td class="fw-medium" style="width: 130px;">NISN</td>
+                                                <td style="width: 15px;">:</td>
+                                                <td class="text-dark fw-semibold">{{ $pinjam->user->nisn ?? '-' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-medium">Tingkat Kelas</td>
+                                                <td>:</td>
+                                                <td class="text-dark fw-semibold">{{ $pinjam->user->kelas ?? '-' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-medium">Jurusan</td>
+                                                <td>:</td>
+                                                <td class="text-dark fw-semibold">{{ $pinjam->user->jurusan ?? '-' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-medium">No. Telepon</td>
+                                                <td>:</td>
+                                                <td class="text-dark fw-semibold">{{ $pinjam->user->no_hp ?? '-' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-medium">Buku Dipinjam</td>
+                                                <td>:</td>
+                                                <td class="text-dark fw-semibold">
+                                                    {{ \App\Models\Peminjaman::where('user_id', $pinjam->user_id)->where('status', 'dipinjam')->count() }} Buku Aktif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-medium">Total Denda</td>
+                                                <td>:</td>
+                                                <td>
+                                                    @php
+                                                        // Menghitung akumulasi denda yang pernah atau sedang dimiliki user ini
+                                                        $totalDendaUser = \App\Models\Peminjaman::where('user_id', $pinjam->user_id)->sum('total_denda');
+                                                    @endphp
+                                                    @if($totalDendaUser > 0)
+                                                        <span class="text-danger fw-bold">Rp {{ number_format($totalDendaUser, 0, ',', '.') }}</span>
+                                                    @else
+                                                        <span class="text-success fw-semibold">Rp 0 (Bersih ✨)</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <div class="mb-4 text-start px-1">
+                                        <h6 class="fw-bold text-dark small mb-1">Tentang Pengguna :</h6>
+                                        <p class="text-muted small m-0 italic" style="line-height: 1.5;">
+                                            {{ $pinjam->user->about_me ?? 'Halo! Saya adalah salah satu anggota aktif di Perpustakaan Digital.' }}
+                                        </p>
+                                    </div>
+
+                                    <button type="button" class="btn btn-secondary w-100 py-2 fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; font-size: 13px;">
+                                        TUTUP PROFIL
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
 @endsection
