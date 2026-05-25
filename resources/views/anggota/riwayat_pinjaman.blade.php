@@ -175,4 +175,4 @@
         {{ $riwayats->links() }}
     </div>
 </div>
-@endsection
+@endsection 
