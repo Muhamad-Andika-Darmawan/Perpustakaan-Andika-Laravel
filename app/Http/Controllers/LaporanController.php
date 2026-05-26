@@ -32,14 +32,16 @@ class LaporanController extends Controller
     }
 
     // 2. Halaman Buku Terpopuler (Paling sering dipinjam)
+    // 2. Halaman Buku Terpopuler (Paling sering dipinjam)
     public function terpopuler()
     {
-        // Kita hitung jumlah peminjaman (COUNT) dikelompokkan berdasarkan buku_id
-        // Menggunakan Eloquent Builder dengan subquery static count atau query manual via GroupBy
+        // PERBAIKAN LOGIKA: Ditambahkan filter status agar hanya menghitung yang VALID (dipinjam & kembali)
         $buku_populer = Buku::with('kategori')
-            ->withCount(['peminjamans as total_dipinjam'])
+            ->withCount(['peminjamans as total_dipinjam' => function($query) {
+                $query->whereIn('status', ['dipinjam', 'kembali']);
+            }])
             ->orderBy('total_dipinjam', 'desc')
-            ->take(15) // Kita ambil top 15 buku terpopuler
+            ->take(10)
             ->get();
 
         return view('admin.laporan.terpopuler', compact('buku_populer'));

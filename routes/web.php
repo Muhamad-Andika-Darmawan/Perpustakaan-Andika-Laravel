@@ -197,6 +197,12 @@ Route::middleware('auth')->group(function () {
 
     // RUTE UTK ANGGOTA: Unduh Struk Bukti Peminjaman (Pastikan nama route sesuai view)
     Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
+
+    // Rute untuk melihat halaman Tagihan Denda di sisi Anggota
+    Route::get('/anggota/denda', [PeminjamanController::class, 'tagihanDendaAnggota'])->name('anggota.denda');
+
+    // Rute untuk melihat halaman Buku Terpopuler di sisi Anggota
+    Route::get('/anggota/terpopuler', [PeminjamanController::class, 'bukuTerpopulerAnggota'])->name('anggota.terpopuler');
 });
 }
 );

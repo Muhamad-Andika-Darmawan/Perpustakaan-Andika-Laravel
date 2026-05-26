@@ -76,6 +76,38 @@ class PeminjamanController extends Controller
     return $pdf->download('struk_pinjam_' . $peminjaman->id . '.pdf');
 }
 
+public function tagihanDendaAnggota()
+{
+    $userId = Auth::id();
+
+    // Ambil data peminjaman yang memiliki denda (total_denda > 0)
+    // Di sini kita asumsikan jika denda sudah dibayar lunas oleh admin, total_denda di-reset ke 0 atau ada status lunas.
+    // Untuk tahap ini, kita tampilkan semua peminjaman yang memiliki denda berjalan.
+    $daftarDenda = Peminjaman::where('user_id', $userId)
+        ->where('total_denda', '>', 0)
+        ->with('buku')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Hitung Grand Total Akumulasi Denda Siswa
+    $grandTotal = $daftarDenda->sum('total_denda');
+    $adaDendaAktif = $daftarDenda->count() > 0;
+
+    return view('anggota.denda', compact('daftarDenda', 'grandTotal', 'adaDendaAktif'));
+}
+
+public function bukuTerpopulerAnggota()
+    {
+        // Mengambil top 10 buku yang paling banyak dipinjam
+        $buku_populer = \App\Models\Buku::withCount(['peminjamans as total_dipinjam' => function($query) {
+                $query->whereIn('status', ['dipinjam', 'kembali']);
+            }])
+            ->orderBy('total_dipinjam', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('admin.laporan.terpopuler', compact('buku_populer'));
+    }
 
     // =========================================================================
     // 2. FITUR SISI ADMIN (MANAJEMEN & FLOW PEMINJAMAN)
