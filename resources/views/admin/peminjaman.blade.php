@@ -260,6 +260,7 @@
     });
 </script>
 
+@foreach($peminjamans as $pinjam)
 <div class="modal fade" id="modalDetailAnggota{{ $pinjam->id }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content border-0 shadow" style="border-radius: 20px;">
@@ -342,5 +343,6 @@
                             </div>
                         </div>
                     </div>
+@endforeach
 
 @endsection
