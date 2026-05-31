@@ -158,7 +158,7 @@
             <div class="modal-body p-4 text-center">
                 <div class="position-relative mb-3">
                     @if($pinjam->user && $pinjam->user->foto_profil)
-                        <img src="{{ asset('storage/' . $pinjam->user->foto_profil) }}" alt="Foto Profil" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
+                        <img src="{{ asset('storage/app/public/profil/' . $pinjam->user->foto_profil) }}" alt="Foto Profil" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
                     @else
                         <div class="bg-dark text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; font-size: 36px; font-weight: bold; border: 3px solid #fff;">
                             {{ strtoupper(substr($pinjam->user->nama_lengkap ?? 'A', 0, 1)) }}
