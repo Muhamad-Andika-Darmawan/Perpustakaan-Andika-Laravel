@@ -35,6 +35,15 @@
         color: #64748b;
         font-weight: 500;
     }
+    #cameraWebcam {
+        width: 100%;
+        max-width: 400px;
+        border-radius: 12px;
+        transform: scaleX(-1); /* Efek Cermin Supaya Natural */
+    }
+    #canvasSnapshot {
+        display: none;
+    }
 </style>
 
 <div class="container-fluid p-0">
@@ -156,11 +165,20 @@
 
                                     <div class="col-md-12">
                                         <label class="form-label small fw-bold text-dark">Ganti Foto Profil</label>
-                                        <input type="file" name="foto_profil" id="inputFotoProfil" class="form-control" accept="image/*" style="border-radius: 8px;">
-                                        <div class="form-text text-muted" style="font-size: 11px;">Format berkas: JPG, JPEG, PNG. Maksimal ukuran: 2MB.</div>
+                                        <div class="input-group mb-2">
+                                            <input type="file" name="foto_profil" id="inputFotoProfil" class="form-control" accept="image/*" style="border-radius: 8px 0 0 8px;">
+                                            <button type="button" class="btn btn-dark px-3" data-bs-toggle="modal" data-bs-target="#modalKamera" style="border-radius: 0 8px 8px 0;">
+                                                <i class="bi bi-camera-fill me-1"></i> Ambil Foto
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Hidden Input untuk menampung data string gambar hasil tangkapan kamera -->
+                                        <input type="hidden" name="foto_kamera" id="fotoKameraBase64">
+                                        
+                                        <div class="form-text text-muted" style="font-size: 11px;">Format berkas: JPG, JPEG, PNG. Maksimal ukuran: 2MB. Bisa unggah file atau ambil foto langsung.</div>
                                         
                                         <div class="mt-3 d-none" id="framePreviewFoto">
-                                            <p class="small text-muted mb-1">Pratinjau Foto Baru:</p>
+                                            <p class="small text-muted mb-1" id="labelPreview">Pratinjau Foto Baru:</p>
                                             <img src="" id="previewFotoProfil" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
                                         </div>
                                     </div>
@@ -213,16 +231,47 @@
     </div>
 </div>
 
+<!-- MODAL KAMERA WEBCAM -->
+<div class="modal fade" id="modalKamera" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalKameraLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="modalKameraLabel"><i class="bi bi-camera me-2"></i>Ambil Foto Profil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btnCloseKamera"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <!-- Video Streaming Kamera -->
+                <video id="cameraWebcam" autoplay playsinline></video>
+                <!-- Canvas Tersembunyi untuk Capture Image -->
+                <canvas id="canvasSnapshot" width="400" height="400"></canvas>
+                <p class="text-muted small mt-2 m-0">Izinkan akses kamera laptop jika muncul notifikasi popup browser.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pt-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" id="btnBatalKamera" style="border-radius: 8px;">Batal</button>
+                <button type="button" class="btn btn-warning fw-semibold px-4" id="btnCapture" style="border-radius: 8px;">
+                    <i class="bi bi-camera-fill me-1"></i> Jepret Foto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Logika Live Preview Unggah Foto Profil Baru
+    // Logika Live Preview Unggah File Foto Profil Baru
     const inputFotoProfil = document.getElementById('inputFotoProfil');
     const framePreviewFoto = document.getElementById('framePreviewFoto');
     const previewFotoProfil = document.getElementById('previewFotoProfil');
+    const labelPreview = document.getElementById('labelPreview');
+    const fotoKameraBase64 = document.getElementById('fotoKameraBase64');
 
     if (inputFotoProfil) {
         inputFotoProfil.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
+                // Bersihkan data dari tangkapan kamera jika user beralih mengunggah berkas
+                fotoKameraBase64.value = '';
+                labelPreview.innerText = "Pratinjau Berkas Foto Baru:";
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     previewFotoProfil.src = e.target.result;
@@ -232,5 +281,70 @@
             }
         });
     }
+
+    // --- LOGIKA INTEGRASI KAMERA WEBCAM ---
+    const modalKamera = document.getElementById('modalKamera');
+    const video = document.getElementById('cameraWebcam');
+    const canvas = document.getElementById('canvasSnapshot');
+    const btnCapture = document.getElementById('btnCapture');
+    const btnCloseKamera = document.getElementById('btnCloseKamera');
+    const btnBatalKamera = document.getElementById('btnBatalKamera');
+    
+    let streamKamera = null;
+
+    // Hidupkan Kamera saat Modal Dibuka
+    modalKamera.addEventListener('shown.bs.modal', function () {
+        navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 400, facingMode: "user" }, audio: false })
+            .then(function(stream) {
+                streamKamera = stream;
+                video.srcObject = stream;
+            })
+            .catch(function(err) {
+                alert("Gagal mengakses kamera laptop: " + err.message + "\nPastikan izin browser sudah aktif.");
+                // Tutup modal secara otomatis jika gagal mendapatkan stream
+                const modalInstance = bootstrap.Modal.getInstance(modalKamera);
+                modalInstance.hide();
+            });
+    });
+
+    // Matikan Kamera saat Modal Ditutup/Dibatalkan
+    function stopKamera() {
+        if (streamKamera) {
+            streamKamera.getTracks().forEach(track => track.stop());
+            streamKamera = null;
+        }
+    }
+    modalKamera.addEventListener('hidden.bs.modal', stopKamera);
+
+    // Proses Jepret Foto (Capture)
+    btnCapture.addEventListener('click', function() {
+        if (streamKamera) {
+            const context = canvas.getContext('2d');
+            
+            // Efek cermin saat menggambar gambar di canvas (supaya sinkron dengan tayangan video)
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+            
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Mengubah gambar canvas ke string Base64 Data URL (Format JPEG kualitas tinggi)
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // Masukkan data string ke hidden input form
+            fotoKameraBase64.value = dataUrl;
+            
+            // Set ke layar preview utama di form
+            previewFotoProfil.src = dataUrl;
+            labelPreview.innerText = "Pratinjau Hasil Tangkapan Kamera:";
+            framePreviewFoto.classList.remove('d-none');
+            
+            // Reset input type file biasa agar tidak bentrok
+            inputFotoProfil.value = '';
+            
+            // Tutup modal
+            const modalInstance = bootstrap.Modal.getInstance(modalKamera);
+            modalInstance.hide();
+        }
+    });
 </script>
 @endsection

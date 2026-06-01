@@ -191,8 +191,25 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-center mt-4">
-        {{ $users->links() }}
-    </div>
+    <nav class="mt-4 px-2">
+        <ul class="pagination justify-content-center">
+            {{-- Tombol Prev --}}
+            <li class="page-item {{ $users->currentPage() <= 1 ? 'disabled' : '' }}">
+                <a class="page-link" href="?page={{ $users->currentPage() - 1 }}&search={{ request('search') }}&kelas={{ request('kelas') }}&jurusan={{ request('jurusan') }}">« Prev</a>
+            </li>
+
+            {{-- Looping Angka Halaman --}}
+            @for ($i = 1; $i <= $users->lastPage(); $i++)
+                <li class="page-item {{ $i == $users->currentPage() ? 'active' : '' }}">
+                    <a class="page-link" href="?page={{ $i }}&search={{ request('search') }}&kelas={{ request('kelas') }}&jurusan={{ request('jurusan') }}">{{ $i }}</a>
+                </li>
+            @endfor
+
+            {{-- Tombol Next --}}
+            <li class="page-item {{ $users->currentPage() >= $users->lastPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="?page={{ $users->currentPage() + 1 }}&search={{ request('search') }}&kelas={{ request('kelas') }}&jurusan={{ request('jurusan') }}">Next »</a>
+            </li>
+        </ul>
+    </nav>
 </div>
 @endsection

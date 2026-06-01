@@ -183,9 +183,26 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-center mt-4">
-        {{ $riwayats->links() }}
-    </div>
+    <nav class="mt-4 px-2">
+        <ul class="pagination justify-content-center">
+            {{-- Tombol Prev --}}
+            <li class="page-item {{ $riwayats->currentPage() <= 1 ? 'disabled' : '' }}">
+                <a class="page-link" href="?page={{ $riwayats->currentPage() - 1 }}&tab={{ $tabaktif ?? '' }}">« Prev</a>
+            </li>
+
+            {{-- Looping Angka Halaman --}}
+            @for ($i = 1; $i <= $riwayats->lastPage(); $i++)
+                <li class="page-item {{ $i == $riwayats->currentPage() ? 'active' : '' }}">
+                    <a class="page-link" href="?page={{ $i }}&tab={{ $tabaktif ?? '' }}">{{ $i }}</a>
+                </li>
+            @endfor
+
+            {{-- Tombol Next --}}
+            <li class="page-item {{ $riwayats->currentPage() >= $riwayats->lastPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="?page={{ $riwayats->currentPage() + 1 }}&tab={{ $tabaktif ?? '' }}">Next »</a>
+            </li>
+        </ul>
+    </nav>
 </div>
 
 <script>

@@ -182,4 +182,41 @@ class AnggotaController extends Controller
 
         return redirect()->route('admin.anggota')->with('success', 'Akun user/anggota berhasil dihapus!');
     }
+
+    // --- HALAMAN DAFTAR ANGGOTA & STAFF SISI ANGGOTA (10 DATA PER HALAMAN) ---
+    public function dataAnggotaMasyarakat(Request $request)
+    {
+        $search = $request->input('search');
+        $filter_kelas = $request->input('kelas');
+        $filter_jurusan = $request->input('jurusan');
+
+        // Query model User
+        $query = User::query();
+
+        // Logika Pencarian Nama atau NISN
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%");
+            });
+        }
+
+        // Logika Filter Kelas
+        if ($filter_kelas) {
+            $query->where('kelas', $filter_kelas);
+        }
+
+        // Logika Filter Jurusan
+        if ($filter_jurusan) {
+            $query->where('jurusan', $filter_jurusan);
+        }
+
+        // Urutkan berdasarkan role admin/staff dulu baru anggota, lalu paginate 10 data
+        $users = $query->orderByRaw("FIELD(role, 'admin', 'staff', 'anggota')")
+                       ->orderBy('name', 'asc')
+                       ->paginate(10)
+                       ->withQueryString();
+
+        return view('anggota.data_anggota', compact('users', 'search', 'filter_kelas', 'filter_jurusan'));
+    }
 }

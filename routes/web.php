@@ -203,6 +203,8 @@ Route::middleware('auth')->group(function () {
     // Rute untuk Hapus Kategori dan Buku (Tambahkan ini, Dik)
     Route::delete('/admin/kategori/hapus/{id}', [BukuController::class, 'destroyKategori'])->name('admin.katalog.deleteKategori');
     Route::delete('/admin/buku/hapus/{id}', [BukuController::class, 'destroyBuku'])->name('admin.buku.delete');
+
+    Route::get('/anggota/katalog', [BukuController::class, 'katalogAnggota'])->name('anggota.katalog');
 });
 }
 );

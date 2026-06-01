@@ -21,47 +21,55 @@ class ProfileController extends Controller
 
     // Memproses Update Data Diri & Foto Profil
     public function update(Request $request)
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        $request->validate([
-            'nama_lengkap' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
-            'no_hp' => 'nullable|string|max:15',
-            'about_me' => 'nullable|string|max:255',
-            'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+    $request->validate([
+        'nama_lengkap' => 'required|string|max:255',
+        'username' => 'required|string|max:255|unique:users,username,' . $user->id,
+        'no_hp' => 'nullable|string|max:15',
+        'about_me' => 'nullable|string|max:255',
+        // Hapus validasi 'foto_profil' di sini agar tidak error saat ambil via kamera
+    ]);
 
-        // Update data dasar
-        $user->nama_lengkap = $request->nama_lengkap;
-        $user->username = $request->username;
-        $user->no_hp = $request->no_hp;
-        $user->about_me = $request->about_me;
+    // Update data dasar
+    $user->nama_lengkap = $request->nama_lengkap;
+    $user->username = $request->username;
+    $user->no_hp = $request->no_hp;
+    $user->about_me = $request->about_me;
 
-        // Jika user adalah anggota, ijinkan edit kelas/jurusan/nisn jika diperlukan
-        if ($user->role === 'anggota') {
-            $user->nisn = $request->nisn;
-            $user->kelas = $request->kelas;
-            $user->jurusan = $request->jurusan;
+    // --- LOGIKA PENYIMPANAN FOTO BARU ---
+
+    // 1. Jika User mengunggah file foto biasa
+    if ($request->hasFile('foto_profil')) {
+        if ($user->foto_profil && Storage::exists('public/profil/' . $user->foto_profil)) {
+            Storage::delete('public/profil/' . $user->foto_profil);
         }
-
-        // Proses unggah foto profil baru jika ada
-        if ($request->hasFile('foto_profil')) {
-            // Hapus foto lama jika ada
-            if ($user->foto_profil && Storage::exists('public/profil/' . $user->foto_profil)) {
-                Storage::delete('public/profil/' . $user->foto_profil);
-            }
-
-            $file = $request->file('foto_profil');
-            $namaFoto = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('public/profil', $namaFoto);
-            $user->foto_profil = $namaFoto;
+        $file = $request->file('foto_profil');
+        $namaFoto = time() . '_' . $file->getClientOriginalName();
+        $file->storeAs('public/profil', $namaFoto);
+        $user->foto_profil = $namaFoto;
+    } 
+    // 2. ATAU jika User mengambil foto via Kamera (Base64)
+    elseif ($request->filled('foto_kamera')) {
+        if ($user->foto_profil && Storage::exists('public/profil/' . $user->foto_profil)) {
+            Storage::delete('public/profil/' . $user->foto_profil);
         }
-
-        $user->save();
-
-        return redirect()->route('profile')->with('success', 'Profil Anda berhasil diperbarui!');
+        
+        $imageData = $request->input('foto_kamera');
+        // Membersihkan header base64
+        $image = str_replace('data:image/jpeg;base64,', '', $imageData);
+        $image = str_replace(' ', '+', $image);
+        $namaFoto = 'camera_' . time() . '.jpg';
+        
+        Storage::put('public/profil/' . $namaFoto, base64_decode($image));
+        $user->foto_profil = $namaFoto;
     }
+
+    $user->save();
+
+    return redirect()->route('profile')->with('success', 'Profil Anda berhasil diperbarui!');
+}
 
     // Memproses Ubah Password
     public function updatePassword(Request $request)

@@ -96,7 +96,7 @@
                     <select name="kategori" class="form-select" style="border-radius: 10px;">
                         <option value="">Semua Kategori</option>
                         @foreach($kategoris as $kat)
-                            <option value="{{ $kat->id }}" {{ $filterKategori == $kat->id ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
+                            <option value="{{ $kat->id }}" {{ $kategori_filter == $kat->id ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -226,8 +226,25 @@
         @endforelse
     </div>
 
-    <div class="d-flex justify-content-center mt-4">
-        {{ $bukus->links() }}
-    </div>
+    <nav class="mt-5 px-2">
+        <ul class="pagination justify-content-center">
+            {{-- Tombol Prev --}}
+            <li class="page-item {{ $bukus->currentPage() <= 1 ? 'disabled' : '' }}">
+                <a class="page-link" href="?page={{ $bukus->currentPage() - 1 }}&search={{ request('search') }}&kategori={{ request('kategori') }}">« Prev</a>
+            </li>
+
+            {{-- Looping Angka Halaman --}}
+            @for ($i = 1; $i <= $bukus->lastPage(); $i++)
+                <li class="page-item {{ $i == $bukus->currentPage() ? 'active' : '' }}">
+                    <a class="page-link" href="?page={{ $i }}&search={{ request('search') }}&kategori={{ request('kategori') }}">{{ $i }}</a>
+                </li>
+            @endfor
+
+            {{-- Tombol Next --}}
+            <li class="page-item {{ $bukus->currentPage() >= $bukus->lastPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="?page={{ $bukus->currentPage() + 1 }}&search={{ request('search') }}&kategori={{ request('kategori') }}">Next »</a>
+            </li>
+        </ul>
+    </nav>
 </div>
 @endsection

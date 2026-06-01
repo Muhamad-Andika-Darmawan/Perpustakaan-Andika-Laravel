@@ -157,4 +157,36 @@ class BukuController extends Controller
 
         return redirect()->route('admin.katalog')->with('success', 'Buku berhasil dihapus!');
     }
+
+    // --- HALAMAN KATALOG BUKU SISI ANGGOTA (12 DATA PER HALAMAN) ---
+    public function katalogAnggota(Request $request)
+    {
+        $search = $request->input('search');
+        $kategori_filter = $request->input('kategori');
+
+        // Query Model Buku dengan Eager Loading Kategori
+        $query = Buku::with('kategori');
+
+        // Logika Pencarian (Judul, Penulis, Penerbit)
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('penulis', 'like', "%{$search}%")
+                  ->orWhere('penerbit', 'like', "%{$search}%");
+            });
+        }
+
+        // Logika Filter Kategori
+        if ($kategori_filter) {
+            $query->where('kategori_id', $kategori_filter);
+        }
+
+        // Tampilkan 12 data agar pas membentuk grid 3 baris x 4 kolom
+        $bukus = $query->latest()->paginate(12)->withQueryString();
+        
+        // Mengambil semua kategori untuk menu filter sidebar/dropdown anggota
+        $kategoris = Kategori::all();
+
+        return view('anggota.katalog', compact('bukus', 'kategoris', 'search', 'kategori_filter'));
+    }
 } // Batas penutup class controller kamu

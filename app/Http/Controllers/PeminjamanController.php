@@ -329,4 +329,26 @@ class PeminjamanController extends Controller
 
         return back()->with('success', 'Terima kasih! Buku "' . $buku->judul . '" berhasil dikembalikan tepat waktu. Akun kamu bebas dari denda ✨');
     }
+
+    public function riwayatSiswa(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Ambil input status dari request, defaultnya string kosong ''
+        $status_filter = $request->input('status', '');
+
+        // Query dasar mengambil data peminjaman milik user yang sedang login
+        $query = Peminjaman::with('buku')->where('user_id', $user->id);
+
+        // Filter Berdasarkan Tab Status jika nilainya valid
+        if ($status_filter && in_array($status_filter, ['menunggu', 'dipinjam', 'kembali', 'ditolak'])) {
+            $query->where('status', $status_filter);
+        }
+
+        // Urutkan dari yang terbaru dan batasi 10 data per halaman
+        $riwayats = $query->latest()->paginate(10)->withQueryString();
+
+        // PENTING: compact harus mengirimkan riwayats DAN status_filter
+        return view('anggota.riwayat_pinjaman', compact('riwayats', 'status_filter'));
+    }
 }
