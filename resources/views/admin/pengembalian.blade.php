@@ -95,7 +95,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- LOOP UTAMA: Hanya merender baris DATA TABEL --}}
                     @forelse($pengembalians as $pinjam)
                     <tr>
                         <td>{{ $loop->iteration + ($pengembalians->currentPage() - 1) * $pengembalians->perPage() }}</td>
@@ -118,12 +117,24 @@
 
                         <td><span class="fw-semibold text-dark">{{ $pinjam->buku->judul ?? 'Buku Tidak Ditemukan' }}</span></td>
 
-                        <td>{{ $pinjam->tgl_pengajuan ? \Carbon\Carbon::parse($pinjam->tgl_pengajuan)->format('d/m/Y') : '-' }}</td>
+                        <td>{{ $pinjam->tgl_pinjam ? \Carbon\Carbon::parse($pinjam->tgl_pinjam)->format('d/m/Y') : '-' }}</td>
 
                         <td>{{ $pinjam->tgl_kembali_seharusnya ? \Carbon\Carbon::parse($pinjam->tgl_kembali_seharusnya)->format('d/m/Y') : '-' }}</td>
 
+                        <!-- Dinamisasi Kolom Keterlambatan / Denda -->
                         <td>
-                            <span class="text-success fw-medium">Tepat Waktu</span>
+                            @if($pinjam->total_denda > 0)
+                                <div class="text-danger fw-bold">Rp {{ number_format($pinjam->total_denda, 0, ',', '.') }}</div>
+                                <small class="text-muted d-block" style="font-size: 11px;">
+                                    @if(empty($pinjam->struk_kembali))
+                                        <i class="bi bi-exclamation-circle text-warning"></i> Tanpa Struk Fisik
+                                    @else
+                                        <i class="bi bi-clock-history"></i> Terlambat Kembali
+                                    @endif
+                                </small>
+                            @else
+                                <span class="text-success fw-medium"><i class="bi bi-shield-check"></i> Tepat Waktu</span>
+                            @endif
                         </td>
 
                         <td class="text-center">

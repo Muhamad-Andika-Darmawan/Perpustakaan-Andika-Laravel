@@ -66,9 +66,14 @@
                         <th class="text-start">Informasi Buku</th>
                         <th>Tanggal Pinjam</th>
                         <th>Batas Kembali</th>
-                        @if($tabaktif == 'dipinjam' || $tabaktif == 'kembali')
+                        <!-- Pemisahan Kolom Sesuai Request -->
+                        @if($tabaktif == 'dipinjam')
                             <th>Status / Denda</th>
+                        @elseif($tabaktif == 'kembali')
+                            <th>Status</th>
+                            <th>Denda Masuk</th>
                         @endif
+                        
                         @if($tabaktif == 'menunggu' || $tabaktif == 'dipinjam')
                             <th style="width: 220px;">Aksi</th>
                         @endif
@@ -81,7 +86,6 @@
                             $hari_ini = \Carbon\Carbon::now()->startOfDay();
                             $terlambat = $hari_ini->gt($tgl_kembali);
                             $selisihHari = $terlambat ? $hari_ini->diffInDays($tgl_kembali) : 0;
-                            $denda = $selisihHari * 1000;
                         @endphp
                         <tr>
                             <td>
@@ -120,16 +124,23 @@
                                     @endif
                                 </td>
                             @elseif($tabaktif == 'kembali')
+                                <!-- Kolom Status Murni -->
                                 <td>
                                     @if($data->status == 'ditolak')
                                         <span class="badge bg-danger text-white px-2 py-1" style="font-size: 11px;"><i class="bi bi-x-circle me-1"></i> Ditolak Admin</span>
                                     @else
-                                        @if($data->denda > 0)
-                                            <span class="text-danger fw-bold d-block small">Rp {{ number_format($data->denda, 0, ',', '.') }}</span>
-                                            <span class="badge bg-danger text-white" style="font-size: 10px;">Sudah Dikembalikan</span>
-                                        @else
-                                            <span class="badge bg-success text-white px-2 py-1" style="font-size: 11px;"><i class="bi bi-check-all me-1"></i> Selesai</span>
-                                        @endif
+                                        <span class="badge bg-success text-white px-2 py-1" style="font-size: 11px;"><i class="bi bi-check-all me-1"></i> Selesai</span>
+                                    @endif
+                                </td>
+                                <!-- Kolom Denda Terpisah Transparan -->
+                                <td>
+                                    @if($data->total_denda > 0)
+                                        <span class="text-danger fw-bold d-block small">Rp {{ number_format($data->total_denda, 0, ',', '.') }}</span>
+                                        <small class="text-muted d-block" style="font-size: 10px;">
+                                            {{ empty($data->struk_kembali) ? '(Tanpa Struk Fisik)' : '(Keterlambatan)' }}
+                                        </small>
+                                    @else
+                                        <span class="badge bg-success-subtle text-success px-2 py-1" style="font-size: 11px;">Bebas Denda ✨</span>
                                     @endif
                                 </td>
                             @endif
@@ -183,12 +194,10 @@ function validasiPengembalian(id) {
     const form = document.getElementById('form-kembali-' + id);
 
     if (fileInput.files.length > 0) {
-        // Skenario A: Ada file struk
         if (confirm("Apakah kamu yakin ingin mengembalikan buku ini dengan menyertakan bukti struk?")) {
             form.submit();
         }
     } else {
-        // Skenario B: Tanpa file struk, ingatkan denda Rp 1.000 sesuai aturan baru
         if (confirm("Peringatan!\nKamu mengembalikan buku tanpa mengunggah foto struk.\n\nSesuai peraturan, kamu akan dikenakan denda tambahan sebesar Rp 1.000 otomatis pada tagihan denda akunmu.\n\nApakah kamu tetap yakin ingin melanjutkan?")) {
             form.submit();
         }
@@ -196,4 +205,4 @@ function validasiPengembalian(id) {
 }
 </script>
 
-@endsection 
+@endsection
