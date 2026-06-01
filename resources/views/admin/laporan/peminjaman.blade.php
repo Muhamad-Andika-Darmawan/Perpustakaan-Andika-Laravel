@@ -113,7 +113,7 @@
                             </td>
                             <td class="fw-semibold" style="color: #334155; max-width: 250px;">{{ $l->buku->judul }}</td>
                             <td class="text-center">
-                                <span class="small fw-medium">{{ $l->tgl_pinjam ? \Carbon\Carbon::parse($l->tgl_pinjam)->format('d/m/Y') : 'Belum Di-ACC' }}</span>
+                                <span class="small fw-medium">{{ $l->tgl_pengajuan ? \Carbon\Carbon::parse($l->tgl_pengajuan)->format('d/m/Y') : 'Belum Di-ACC' }}</span>
                             </td>
                             <td class="text-center">
                                 @if($l->tgl_pengembalian)
