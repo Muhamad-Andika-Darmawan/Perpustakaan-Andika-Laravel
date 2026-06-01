@@ -13,6 +13,9 @@ class LaporanController extends Controller
     // 1. Halaman Laporan Peminjaman & Pengembalian Komplit
     public function peminjaman(Request $request)
     {
+        if (auth()->user()->role !== 'admin') {
+        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
         // Default filter tanggal: Dari awal bulan ini sampai hari ini
         $tgl_mulai = $request->input('tgl_mulai', Carbon::now()->startOfMonth()->toDateString());
         $tgl_selesai = $request->input('tgl_selesai', Carbon::now()->endOfMonth()->toDateString());
@@ -35,6 +38,9 @@ class LaporanController extends Controller
     // 2. Halaman Buku Terpopuler (Paling sering dipinjam)
     public function terpopuler()
     {
+        if (auth()->user()->role !== 'admin') {
+        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
         // PERBAIKAN LOGIKA: Ditambahkan filter status agar hanya menghitung yang VALID (dipinjam & kembali)
         $buku_populer = Buku::with('kategori')
             ->withCount(['peminjamans as total_dipinjam' => function($query) {

@@ -15,7 +15,12 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
-    return redirect()->route('login');
+    if (auth()->check()) {
+        return auth()->user()->role === 'admin' 
+            ? redirect()->route('admin.dashboard') 
+            : redirect()->route('anggota.dashboard');
+    }
+    return view('welcome');
 });
 
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
@@ -152,6 +157,9 @@ Route::middleware('auth')->group(function () {
 
     // Taruh di dalam grup Route::middleware('auth')->group(function () { ... })
     Route::get('/anggota/riwayat-pinjaman', function (Illuminate\Http\Request $request) {
+        if (auth()->user()->role !== 'anggota') {
+        abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
+    }
         // Default-nya memunculkan tab 'menunggu' sesuai isi database kamu
         $tabaktif = $request->input('tab', 'menunggu');
         

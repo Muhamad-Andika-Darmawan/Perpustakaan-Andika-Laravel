@@ -15,6 +15,9 @@ class AnggotaController extends Controller
 {
     public function dashboardAdmin()
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
         // 1. Data statistik dasar
         $totalBuku = Buku::count();
         $totalAnggota = User::where('role', 'anggota')->count();
@@ -186,6 +189,9 @@ class AnggotaController extends Controller
     // --- HALAMAN DAFTAR ANGGOTA & STAFF SISI ANGGOTA (10 DATA PER HALAMAN) ---
     public function dataAnggotaMasyarakat(Request $request)
     {
+        if (auth()->user()->role !== 'anggota') {
+            abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
+        }
         $search = $request->input('search');
         $filter_kelas = $request->input('kelas');
         $filter_jurusan = $request->input('jurusan');

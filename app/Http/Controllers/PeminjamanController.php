@@ -69,6 +69,9 @@ class PeminjamanController extends Controller
 
     public function tagihanDendaAnggota()
     {
+        if (auth()->user()->role !== 'anggota') {
+            abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
+        }
         $userId = Auth::id();
 
         // Mengambil semua data denda berjalan milik siswa (Anggota)
@@ -86,6 +89,9 @@ class PeminjamanController extends Controller
 
     public function bukuTerpopulerAnggota()
     {
+        if (auth()->user()->role !== 'anggota') {
+            abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
+        }
         $buku_populer = Buku::withCount(['peminjamans as total_dipinjam' => function($query) {
                 $query->whereIn('status', ['dipinjam', 'kembali']);
             }])
@@ -102,6 +108,9 @@ class PeminjamanController extends Controller
 
     public function index(Request $request)
     {
+        if (auth()->user()->role !== 'admin') {
+        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
         $search = $request->input('search');
         $filter_tingkat = $request->input('filter_tingkat');
         $filter_jurusan = $request->input('filter_jurusan');
@@ -137,6 +146,9 @@ class PeminjamanController extends Controller
 
     public function indexPengembalian(Request $request)
     {
+        if (auth()->user()->role !== 'admin') {
+        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
         $search = $request->input('search');
         $filter_tingkat = $request->input('filter_tingkat');
         $filter_jurusan = $request->input('filter_jurusan');
@@ -176,6 +188,9 @@ class PeminjamanController extends Controller
      */
     public function indexDenda(Request $request)
     {
+        if (auth()->user()->role !== 'admin') {
+        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
         $search = $request->input('search');
         
         // Membaca tabel peminjaman yang memiliki nilai denda di atas 0
@@ -238,6 +253,9 @@ class PeminjamanController extends Controller
 
     public function dashboardAnggota()
 {
+    if (auth()->user()->role !== 'anggota') {
+            abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
+        }
     $userId = auth()->id();
 
     // 1. Buku yang sedang dipinjam (status = dipinjam)

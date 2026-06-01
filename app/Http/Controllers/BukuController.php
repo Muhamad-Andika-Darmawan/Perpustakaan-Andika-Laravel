@@ -12,6 +12,9 @@ class BukuController extends Controller
 {
     public function index(Request $request)
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
         $search = $request->input('search');
         $kategori_filter = $request->input('kategori');
 
@@ -161,6 +164,9 @@ class BukuController extends Controller
     // --- HALAMAN KATALOG BUKU SISI ANGGOTA (12 DATA PER HALAMAN) ---
     public function katalogAnggota(Request $request)
     {
+        if (auth()->user()->role !== 'anggota') {
+            abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
+        }
         $search = $request->input('search');
         $kategori_filter = $request->input('kategori');
 
