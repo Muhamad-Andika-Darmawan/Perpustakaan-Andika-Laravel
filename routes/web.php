@@ -10,11 +10,18 @@ use App\Models\Buku;
 use App\Models\Kategori;
 use App\Models\User;
 use App\Models\Peminjaman;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 // Jika user menembak URL utama (/), langsung arahkan ke halaman login
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 // Jalur Masuk (Auth GUEST - Hanya bisa diakses jika BELUM login)
 Route::middleware('guest')->group(function () {
@@ -81,130 +88,129 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/delete', [ProfileController::class, 'destroy'])->name('profile.delete');
 
     Route::get('/anggota/katalog', function (Illuminate\Http\Request $request) {
-    $search = $request->input('search');
-    $filterKategori = $request->input('kategori');
+        $search = $request->input('search');
+        $filterKategori = $request->input('kategori');
 
-    // Query buku dengan filter search & kategori
-    $query = Buku::with('kategori');
+        // Query buku dengan filter search & kategori
+        $query = Buku::with('kategori');
 
-    if ($search) {
-        $query->where(function($q) use ($search) {
-            $q->where('judul', 'like', "%{$search}%")
-              ->orWhere('penulis', 'like', "%{$search}%")
-              ->orWhere('penerbit', 'like', "%{$search}%");
-        });
-    }
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('penulis', 'like', "%{$search}%")
+                  ->orWhere('penerbit', 'like', "%{$search}%");
+            });
+        }
 
-    if ($filterKategori) {
-        $query->where('kategori_id', $filterKategori);
-    }
+        if ($filterKategori) {
+            $query->where('kategori_id', $filterKategori);
+        }
 
-    // Ambil data buku dengan pagination 10 data
-    $bukus = $query->paginate(10)->withQueryString();
-    
-    // Ambil semua kategori untuk menu dropdown filter
-    $kategoris = Kategori::all();
+        // Ambil data buku dengan pagination 10 data
+        $bukus = $query->paginate(10)->withQueryString();
+        
+        // Ambil semua kategori untuk menu dropdown filter
+        $kategoris = Kategori::all();
 
-    return view('anggota.katalog', compact('bukus', 'kategoris', 'search', 'filterKategori'));
+        return view('anggota.katalog', compact('bukus', 'kategoris', 'search', 'filterKategori'));
     })->name('anggota.katalog')->middleware('auth');
 
     Route::get('/anggota/data-anggota', function (Illuminate\Http\Request $request) {
-    $search = $request->input('search');
-    $filter_kelas = $request->input('kelas'); 
-    // 1. AMBIL DATA JURUSAN DARI DROPDOWN HTML (Sebelumnya bagian ini hilang)
-    $filter_jurusan = $request->input('jurusan'); 
+        $search = $request->input('search');
+        $filter_kelas = $request->input('kelas'); 
+        // 1. AMBIL DATA JURUSAN DARI DROPDOWN HTML (Sebelumnya bagian ini hilang)
+        $filter_jurusan = $request->input('jurusan'); 
 
-    $query = App\Models\User::query();
+        $query = App\Models\User::query();
 
-    // Fitur Search Multi-Kolom
-    if ($search) {
-        $query->where(function($q) use ($search) {
-            $q->where('nama_lengkap', 'like', "%{$search}%")
-              ->orWhere('username', 'like', "%{$search}%")
-              ->orWhere('nisn', 'like', "%{$search}%")
-              ->orWhere('role', 'like', "%{$search}%");
-        });
-    }
+        // Fitur Search Multi-Kolom
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%");
+            });
+        }
 
-    // Logika Filter Kelas
-    if ($filter_kelas) {
-        $query->where('kelas', $filter_kelas);
-    }
+        // Logika Filter Kelas
+        if ($filter_kelas) {
+            $query->where('kelas', $filter_kelas);
+        }
 
-    // Logika Filter Jurusan
-    if ($filter_jurusan) {
-        $query->where('jurusan', $filter_jurusan);
-    }
+        // Logika Filter Jurusan
+        if ($filter_jurusan) {
+            $query->where('jurusan', $filter_jurusan);
+        }
 
-    // Ambil data dengan pagination dan pertahankan parameter URL query
-    $users = $query->orderBy('role', 'asc')->paginate(10)->withQueryString();
-    
-    // 2. MASUKKAN 'filter_jurusan' KE DALAM COMPACT AGAR DIOPER KE BLADE
-    return view('anggota.data_anggota', compact('users', 'search', 'filter_kelas', 'filter_jurusan'));
-})->name('anggota.data_anggota');
+        // Ambil data dengan pagination dan pertahankan parameter URL query
+        $users = $query->orderBy('role', 'asc')->paginate(10)->withQueryString();
+        
+        // 2. MASUKKAN 'filter_jurusan' KE DALAM COMPACT AGAR DIOPER KE BLADE
+        return view('anggota.data_anggota', compact('users', 'search', 'filter_kelas', 'filter_jurusan'));
+    })->name('anggota.data_anggota');
 
-// Taruh di dalam grup Route::middleware('auth')->group(function () { ... })
-Route::get('/anggota/riwayat-pinjaman', function (Illuminate\Http\Request $request) {
-    // Default-nya memunculkan tab 'menunggu' sesuai isi database kamu
-    $tabaktif = $request->input('tab', 'menunggu');
-    
-    $query = Peminjaman::with('buku')->where('user_id', auth()->id());
+    // Taruh di dalam grup Route::middleware('auth')->group(function () { ... })
+    Route::get('/anggota/riwayat-pinjaman', function (Illuminate\Http\Request $request) {
+        // Default-nya memunculkan tab 'menunggu' sesuai isi database kamu
+        $tabaktif = $request->input('tab', 'menunggu');
+        
+        $query = Peminjaman::with('buku')->where('user_id', auth()->id());
 
-    // Cek kecocokan status berdasarkan tab yang di-klik user
-    if ($tabaktif === 'menunggu') {
-        $query->where('status', 'menunggu');
-    } elseif ($tabaktif === 'dipinjam') {
-        $query->where('status', 'dipinjam');
-    } elseif ($tabaktif === 'kembali') {
-        // Gabungkan status 'kembali' dan 'ditolak' di tab "Sudah Dikembalikan / Selesai"
-        // atau kamu bisa sesuaikan jika ingin ditolak masuk ke tab tersendiri.
-        $query->whereIn('status', ['kembali', 'ditolak']);
-    }
+        // Cek kecocokan status berdasarkan tab yang di-klik user
+        if ($tabaktif === 'menunggu') {
+            $query->where('status', 'menunggu');
+        } elseif ($tabaktif === 'dipinjam') {
+            $query->where('status', 'dipinjam');
+        } elseif ($tabaktif === 'kembali') {
+            // Gabungkan status 'kembali' dan 'ditolak' di tab "Sudah Dikembalikan / Selesai"
+            // atau kamu bisa sesuaikan jika ingin ditolak masuk ke tab tersendiri.
+            $query->whereIn('status', ['kembali', 'ditolak']);
+        }
 
-    $riwayats = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $riwayats = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
-    return view('anggota.riwayat_pinjaman', compact('riwayats', 'tabaktif'));
-})->name('anggota.riwayat_pinjaman');
+        return view('anggota.riwayat_pinjaman', compact('riwayats', 'tabaktif'));
+    })->name('anggota.riwayat_pinjaman');
 
-Route::middleware('auth')->group(function () {
-    // ... rute yang sudah ada sebelumnya ...
+    Route::middleware('auth')->group(function () {
+        // ... rute yang sudah ada sebelumnya ...
 
-    // 1. Rute Aksi Peminjaman (Ubah namanya jadi anggota.pinjam.proses)
-    Route::post('/anggota/pinjam/{bukuId}', [PeminjamanController::class, 'pinjamBuku'])->name('anggota.pinjam.proses');
-    
-    // 2. Rute Unduh Struk (Tetap biarkan namanya anggota.peminjaman.struk)
-    Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
+        // 1. Rute Aksi Peminjaman (Ubah namanya jadi anggota.pinjam.proses)
+        Route::post('/anggota/pinjam/{bukuId}', [PeminjamanController::class, 'pinjamBuku'])->name('anggota.pinjam.proses');
+        
+        // 2. Rute Unduh Struk (Tetap biarkan namanya anggota.peminjaman.struk)
+        Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
 
-    // 3. Rute untuk membatalkan pengajuan peminjaman
-    Route::delete('/anggota/pinjam/batal/{id}', [PeminjamanController::class, 'batalPinjam'])->name('anggota.pinjam.batal');
+        // 3. Rute untuk membatalkan pengajuan peminjaman
+        Route::delete('/anggota/pinjam/batal/{id}', [PeminjamanController::class, 'batalPinjam'])->name('anggota.pinjam.batal');
 
-    Route::post('/anggota/peminjaman/kembali/{id}', [PeminjamanController::class, 'kembaliBukuMandiri'])->name('anggota.peminjaman.kembali');
+        Route::post('/anggota/peminjaman/kembali/{id}', [PeminjamanController::class, 'kembaliBukuMandiri'])->name('anggota.peminjaman.kembali');
+    });
+
+    Route::middleware('auth')->group(function () {
+        // ... rute yang sudah ada sebelumnya ...
+
+        // RUTE UTK ADMIN: Proses ACC dan Tolak Peminjaman
+        Route::post('/admin/peminjaman/acc/{id}', [PeminjamanController::class, 'accPeminjaman'])->name('admin.peminjaman.acc');
+        Route::post('/admin/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolakPeminjaman'])->name('admin.peminjaman.tolak');
+
+        // RUTE UTK ADMIN: Proses Pengembalian Buku
+        // Route::post('/admin/pengembalian/proses/{id}', [PeminjamanController::class, 'prosesPengembalian'])->name('admin.pengembalian.proses');
+
+        // RUTE UTK ANGGOTA: Unduh Struk Bukti Peminjaman (Pastikan nama route sesuai view)
+        Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
+
+        // Rute untuk melihat halaman Tagihan Denda di sisi Anggota
+        Route::get('/anggota/denda', [PeminjamanController::class, 'tagihanDendaAnggota'])->name('anggota.denda');
+
+        // Rute untuk melihat halaman Buku Terpopuler di sisi Anggota
+        Route::get('/anggota/terpopuler', [PeminjamanController::class, 'bukuTerpopulerAnggota'])->name('anggota.terpopuler');
+
+        // Rute untuk Hapus Kategori dan Buku (Tambahkan ini, Dik)
+        Route::delete('/admin/kategori/hapus/{id}', [BukuController::class, 'destroyKategori'])->name('admin.katalog.deleteKategori');
+        Route::delete('/admin/buku/hapus/{id}', [BukuController::class, 'destroyBuku'])->name('admin.buku.delete');
+
+        Route::get('/anggota/katalog', [BukuController::class, 'katalogAnggota'])->name('anggota.katalog');
+    });
 });
-
-Route::middleware('auth')->group(function () {
-    // ... rute yang sudah ada sebelumnya ...
-
-    // RUTE UTK ADMIN: Proses ACC dan Tolak Peminjaman
-    Route::post('/admin/peminjaman/acc/{id}', [PeminjamanController::class, 'accPeminjaman'])->name('admin.peminjaman.acc');
-    Route::post('/admin/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolakPeminjaman'])->name('admin.peminjaman.tolak');
-
-    // RUTE UTK ADMIN: Proses Pengembalian Buku
-    // Route::post('/admin/pengembalian/proses/{id}', [PeminjamanController::class, 'prosesPengembalian'])->name('admin.pengembalian.proses');
-
-    // RUTE UTK ANGGOTA: Unduh Struk Bukti Peminjaman (Pastikan nama route sesuai view)
-    Route::get('/anggota/peminjaman/struk/{id}', [PeminjamanController::class, 'downloadStruk'])->name('anggota.peminjaman.struk');
-
-    // Rute untuk melihat halaman Tagihan Denda di sisi Anggota
-    Route::get('/anggota/denda', [PeminjamanController::class, 'tagihanDendaAnggota'])->name('anggota.denda');
-
-    // Rute untuk melihat halaman Buku Terpopuler di sisi Anggota
-    Route::get('/anggota/terpopuler', [PeminjamanController::class, 'bukuTerpopulerAnggota'])->name('anggota.terpopuler');
-
-    // Rute untuk Hapus Kategori dan Buku (Tambahkan ini, Dik)
-    Route::delete('/admin/kategori/hapus/{id}', [BukuController::class, 'destroyKategori'])->name('admin.katalog.deleteKategori');
-    Route::delete('/admin/buku/hapus/{id}', [BukuController::class, 'destroyBuku'])->name('admin.buku.delete');
-
-    Route::get('/anggota/katalog', [BukuController::class, 'katalogAnggota'])->name('anggota.katalog');
-});
-}
-);

@@ -247,7 +247,7 @@
 
                                             <!-- Tombol Status Mini -->
                                             <div class="mt-auto">
-                                                <div class="text-center text-white py-1.5 fw-semibold w-100" style="background-color: #0b1b35; border-radius: 8px; font-size: 11px; padding: 6px 0;">
+                                                <div class="text-center fw-bold" style="background-color: #ffc107; border-radius: 8px; font-size: 11px; padding: 6px 0;">
                                                     <i class="bi bi-heart-fill text-danger me-1" style="font-size: 9px;"></i> {{ $buku->total_dipinjam }}x Dipinjam
                                                 </div>
                                             </div>

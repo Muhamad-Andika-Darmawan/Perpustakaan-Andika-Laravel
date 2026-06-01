@@ -50,6 +50,14 @@
         <button type="submit" class="btn-login">LOGIN</button>
     </form>
 
+    <div class="mt-3 text-center">
+    <a href="{{ route('password.request') }}" 
+       style="position: relative; z-index: 10; color: #64748b; text-decoration: none;" 
+       class="small">
+       Lupa Password?
+    </a>
+</div>
+
     <div class="text-center mt-4">
         <p class="text-muted small mb-0">Belum punya akun? <a href="{{ route('register') }}" class="text-warning fw-bold text-decoration-none">Register</a></p>
     </div>
