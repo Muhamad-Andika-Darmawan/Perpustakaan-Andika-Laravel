@@ -120,7 +120,7 @@
                         
                         <td class="text-center">
                             @if($pinjam->user && $pinjam->user->foto_profil)
-                                <img src="{{ asset('storage/' . $pinjam->user->foto_profil) }}" alt="Profil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #e2e8f0;">
+                                <img src="{{ asset('storage/profil/' . $pinjam->user->foto_profil) }}" alt="Profil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #e2e8f0;">
                             @else
                                 <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 40px; height: 40px; font-weight: 600;">
                                     {{ strtoupper(substr($pinjam->user->nama_lengkap ?? 'A', 0, 1)) }}
@@ -268,7 +268,7 @@
                                     
                                     <div class="position-relative mb-3">
                                         @if($pinjam->user && $pinjam->user->foto_profil)
-                                            <img src="{{ asset('storage/public/profil/' . $pinjam->user->foto_profil) }}" alt="Foto Profil" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
+                                            <img src="{{ asset('storage/profil/' . $pinjam->user->foto_profil) }}" alt="Foto Profil" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
                                         @else
                                             <div class="bg-dark text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; font-size: 36px; font-weight: bold; border: 3px solid #fff;">
                                                 {{ strtoupper(substr($pinjam->user->nama_lengkap ?? 'A', 0, 1)) }}
