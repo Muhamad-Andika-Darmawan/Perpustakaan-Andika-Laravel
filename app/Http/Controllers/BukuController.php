@@ -38,6 +38,7 @@ class BukuController extends Controller
         // Ambil semua data kategori untuk dropdown & list modal
         $kategoris = Kategori::all();
 
+        // Mengirimkan data dengan variabel filterKategori yang konsisten untuk UI Blade
         return view('admin.katalog', compact('bukus', 'kategoris', 'search', 'kategori_filter'));
     }
 
@@ -91,15 +92,6 @@ class BukuController extends Controller
         return redirect()->route('admin.katalog')->with('success', 'Kategori baru berhasil disimpan!');
     }
 
-    // Proses Hapus Kategori (Dari dalam Modal Pop-Up)
-    public function destroyKategori($id)
-    {
-        $kategori = Kategori::findOrFail($id);
-        $kategori->delete();
-
-        return redirect()->route('admin.katalog')->with('success', 'Kategori berhasil dihapus!');
-    }
-
     public function updateBuku(Request $request, $id)
 {
     $request->validate([
@@ -141,4 +133,28 @@ class BukuController extends Controller
 
     return redirect()->route('admin.katalog')->with('success', 'Data buku berhasil diperbarui!');
 }
-}
+
+// --- PROSES HAPUS KATEGORI ---
+    public function destroyKategori($id)
+    {
+        $kategori = Kategori::findOrFail($id);
+        $kategori->delete();
+
+        return redirect()->route('admin.katalog')->with('success', 'Kategori berhasil dihapus!');
+    }
+
+    // --- PROSES HAPUS BUKU ---
+    public function destroyBuku($id)
+    {
+        $buku = Buku::findOrFail($id);
+
+        // Hapus file cover dari storage jika ada, agar tidak memenuhi server
+        if ($buku->cover && \Illuminate\Support\Facades\Storage::exists('public/covers/' . $buku->cover)) {
+            \Illuminate\Support\Facades\Storage::delete('public/covers/' . $buku->cover);
+        }
+
+        $buku->delete();
+
+        return redirect()->route('admin.katalog')->with('success', 'Buku berhasil dihapus!');
+    }
+} // Batas penutup class controller kamu

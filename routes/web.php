@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/katalog', [BukuController::class, 'index'])->name('admin.katalog');
     Route::post('/admin/katalog/buku', [BukuController::class, 'storeBuku'])->name('admin.katalog.storeBuku');
     Route::post('/admin/katalog/kategori', [BukuController::class, 'storeKategori'])->name('admin.katalog.storeKategori');
-
+    
     // FIX REVISI KATEGORI: Di katalog.blade.php form hapus menggunakan method POST (tanpa @method('DELETE'))
     // Jadi di route wajib kita ganti dari Route::delete menjadi Route::post agar tidak error!
     Route::post('/admin/katalog/kategori/{id}', [BukuController::class, 'destroyKategori'])->name('admin.katalog.deleteKategori');
@@ -203,6 +203,10 @@ Route::middleware('auth')->group(function () {
 
     // Rute untuk melihat halaman Buku Terpopuler di sisi Anggota
     Route::get('/anggota/terpopuler', [PeminjamanController::class, 'bukuTerpopulerAnggota'])->name('anggota.terpopuler');
+
+    // Rute untuk Hapus Kategori dan Buku (Tambahkan ini, Dik)
+    Route::delete('/admin/kategori/hapus/{id}', [BukuController::class, 'destroyKategori'])->name('admin.katalog.deleteKategori');
+    Route::delete('/admin/buku/hapus/{id}', [BukuController::class, 'destroyBuku'])->name('admin.buku.delete');
 });
 }
 );
