@@ -29,11 +29,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     
     // Dashboard khusus Admin
-    Route::get('/admin/dashboard', function () {
-    $totalBuku = Buku::count();
-    $totalAnggota = User::count();
-    return view('admin.dashboard', compact('totalBuku', 'totalAnggota'));
-})->name('admin.dashboard');
+    Route::get('/admin/dashboard', [AnggotaController::class, 'dashboardAdmin'])->name('admin.dashboard');
     
 
     // Rute untuk Dashboard Anggota

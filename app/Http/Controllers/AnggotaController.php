@@ -4,11 +4,53 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Buku;
+use App\Models\Peminjaman;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB; // Tambahkan ini untuk memproses query populer
+use Carbon\Carbon;
 
 class AnggotaController extends Controller
 {
+    public function dashboardAdmin()
+    {
+        // 1. Data statistik dasar
+        $totalBuku = Buku::count();
+        $totalAnggota = User::where('role', 'anggota')->count();
+        
+        // 2. Menghitung Buku Dipinjam Aktif (status = dipinjam)
+        $bukuDipinjamAktif = Peminjaman::where('status', 'dipinjam')->count();
+        
+        // 3. Menghitung Buku Terlambat Dikembalikan
+        $hariIni = Carbon::today()->toDateString();
+        $terlambatKembali = Peminjaman::where('status', 'dipinjam')
+                                        ->where('tgl_kembali_seharusnya', '<', $hariIni)
+                                        ->count();
+
+        // 4. Mengambil 5 Transaksi Peminjaman Terbaru beserta relasinya
+        $peminjamanTerbaru = Peminjaman::with(['user', 'buku'])
+                                        ->orderBy('created_at', 'desc')
+                                        ->limit(5)
+                                        ->get();
+
+        // 5. Mengambil Koleksi Buku Terpopuler berdasarkan jumlah peminjaman terbanyak
+        $bukuTerpopuler = Buku::select('bukus.*', DB::raw('COUNT(peminjamans.id) as total_dipinjam'))
+                                ->join('peminjamans', 'bukus.id', '=', 'peminjamans.buku_id')
+                                ->groupBy('bukus.id')
+                                ->orderBy('total_dipinjam', 'desc')
+                                ->limit(6) // Kita ambil 6 buku teratas untuk carousel agar bisa digeser
+                                ->get();
+
+        return view('admin.dashboard', compact(
+            'totalBuku', 
+            'totalAnggota', 
+            'bukuDipinjamAktif', 
+            'terlambatKembali', 
+            'peminjamanTerbaru',
+            'bukuTerpopuler'
+        ));
+    }
     public function index(Request $request)
     {
         $search = $request->input('search');

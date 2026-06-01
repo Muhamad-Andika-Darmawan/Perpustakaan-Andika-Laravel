@@ -8,6 +8,7 @@ use App\Models\Buku;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class PeminjamanController extends Controller
 {
@@ -236,20 +237,32 @@ class PeminjamanController extends Controller
     }
 
     public function dashboardAnggota()
-    {
-        $user = Auth::user();
+{
+    $userId = auth()->id();
 
-        $countSelesai = Peminjaman::where('user_id', $user->id)->where('status', 'kembali')->count();
-        
-        $pinjamanAktif = Peminjaman::where('user_id', $user->id)
-            ->where('status', 'dipinjam')
-            ->with('buku')
-            ->get();
-            
-        $countDipinjam = $pinjamanAktif->count();
+    // 1. Buku yang sedang dipinjam (status = dipinjam)
+    $totalDipinjam = Peminjaman::where('user_id', $userId)->where('status', 'dipinjam')->count();
 
-        return view('anggota.dashboard', compact('countDipinjam', 'countSelesai', 'pinjamanAktif'));
-    }
+    // 2. Mengambil akumulasi denda bersih dari database baru
+    $totalDenda = Peminjaman::where('user_id', $userId)->sum('total_denda');
+
+    // 3. Buku yang sudah selesai dibaca (status = kembali)
+    $totalDibaca = Peminjaman::where('user_id', $userId)->where('status', 'kembali')->count();
+
+    // 4. List pinjaman aktif siswa untuk unduh struk
+    $pinjamanAktif = Peminjaman::where('user_id', $userId)->whereIn('status', ['menunggu', 'dipinjam'])->get();
+
+    // 5. Query rekomendasi buku terpopuler (diambil dari buku yang paling banyak dipinjam)
+    $bukuTerpopuler = \App\Models\Buku::with('kategori')
+        ->withCount(['peminjamans as total_dipinjam' => function($query) {
+            $query->where('status', 'kembali')->orWhere('status', 'dipinjam');
+        }])
+        ->orderBy('total_dipinjam', 'desc')
+        ->take(12)
+        ->get();
+
+    return view('anggota.dashboard', compact('totalDipinjam', 'totalDenda', 'totalDibaca', 'pinjamanAktif', 'bukuTerpopuler'));
+}
 
     /**
      * Alur Pengembalian Buku Mandiri oleh Siswa + Kalkulasi Denda Flat Otomatis
