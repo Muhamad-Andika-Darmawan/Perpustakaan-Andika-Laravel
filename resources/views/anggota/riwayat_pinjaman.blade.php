@@ -183,11 +183,13 @@ function validasiPengembalian(id) {
     const form = document.getElementById('form-kembali-' + id);
 
     if (fileInput.files.length > 0) {
-        // Skenario A: Ada file struk, langsung gas submit sukses
-        form.submit();
+        // Skenario A: Ada file struk
+        if (confirm("Apakah kamu yakin ingin mengembalikan buku ini dengan menyertakan bukti struk?")) {
+            form.submit();
+        }
     } else {
-        // Skenario B: Tanpa file struk, cegat dengan warning denda
-        if (confirm("Kamu mengembalikan buku tanpa menyertakan struk. Jika dilanjutkan, kamu akan dikenakan denda! Apakah kamu tetap yakin?")) {
+        // Skenario B: Tanpa file struk, ingatkan denda Rp 1.000 sesuai aturan baru
+        if (confirm("Peringatan!\nKamu mengembalikan buku tanpa mengunggah foto struk.\n\nSesuai peraturan, kamu akan dikenakan denda tambahan sebesar Rp 1.000 otomatis pada tagihan denda akunmu.\n\nApakah kamu tetap yakin ingin melanjutkan?")) {
             form.submit();
         }
     }

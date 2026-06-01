@@ -308,30 +308,71 @@ public function bukuTerpopulerAnggota()
      * Proses Pengembalian Buku Mandiri oleh Anggota beserta Upload Bukti Struk Opsional
      */
     public function kembaliBukuMandiri(Request $request, $id)
-    {
-        $peminjaman = Peminjaman::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->where('status', 'dipinjam')
-            ->firstOrFail();
+{
+    $peminjaman = Peminjaman::where('id', $id)
+        ->where('user_id', Auth::id())
+        ->where('status', 'dipinjam')
+        ->firstOrFail();
 
-        $buku = Buku::findOrFail($peminjaman->buku_id);
+    $buku = Buku::findOrFail($peminjaman->buku_id);
 
-        // Logika penanganan file struk jika diunggah (Skenario A)
-        if ($request->hasFile('struk_kembali')) {
-            $file = $request->file('struk_kembali');
-            $namaFile = time() . '_kembali_' . Auth::id() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('storage/struk_kembali'), $namaFile);
-        }
+    // 1. Ambil Tanggal Hari Ini dan Tanggal Batas Pengembalian (Pastikan format Y-m-d murni tanpa jam)
+    $hariIni = Carbon::today(); // Jam 00:00:00 hari ini
+    
+    // Konversi string tgl_kembali_seharusnya dari database ke object Carbon murni (Jam 00:00:00)
+    $batasKembali = Carbon::createFromFormat('Y-m-d', $peminjaman->tgl_kembali_seharusnya)->startOfDay();
+    
+    $dendaKeterlambatan = 0;
+    $selisihHari = 0;
 
-        // Eksekusi pembaruan data transaksi langsung menjadi kembali
-        $peminjaman->update([
-            'status' => 'kembali',
-            'total_denda' => 0 
-        ]);
-
-        // Otomatis kembalikan jumlah stok fisik buku (+1)
-        $buku->increment('stok');
-
-        return back()->with('success', 'Buku "' . $buku->judul . '" berhasil dikembalikan secara mandiri! Stok buku otomatis bertambah.');
+    // Perbandingan tanggal murni
+    if ($hariIni->gt($batasKembali)) {
+        $selisihHari = $hariIni->diffInDays($batasKembali);
+        $dendaKeterlambatan = $selisihHari * 1000; // Rp 1.000 per hari keterlambatan
     }
+
+    // 2. Logika Hitung Denda Tambahan Tanpa Struk (Rp 1.000)
+    $dendaTanpaStruk = 0;
+    $namaFile = null;
+
+    if ($request->hasFile('struk_kembali')) {
+        $file = $request->file('struk_kembali');
+        $namaFile = time() . '_kembali_' . Auth::id() . '.' . $file->getClientOriginalExtension();
+        // Simpan ke folder public/storage/struk_kembali agar bisa diakses
+        $file->move(public_path('storage/struk_kembali'), $namaFile);
+    } else {
+        // Jika form dikosongkan (Siswa mengembalikan tanpa upload struk fisik)
+        $dendaTanpaStruk = 1000;
+    }
+
+    // Akumulasikan total denda akhir
+    $totalDendaAkhir = $dendaKeterlambatan + $dendaTanpaStruk;
+
+    // 3. Update Transaksi ke Database (Menggunakan kolom total_denda yang benar)
+    $peminjaman->update([
+        'status' => 'kembali',
+        'tgl_pengembalian' => Carbon::now()->toDateString(), // Mencatat tanggal pengembalian hari ini
+        'struk_kembali' => $namaFile,
+        'total_denda' => $totalDendaAkhir // Menggunakan total_denda sesuai database kamu
+    ]);
+
+    // Kembalikan jumlah stok buku fisik ke perpustakaan (+1)
+    $buku->increment('stok');
+
+    // Buat Flash Message Pemberitahuan yang Detil & Interaktif untuk Siswa
+    if ($totalDendaAkhir > 0) {
+        $pesanInfo = 'Buku "' . $buku->judul . '" sukses dikembalikan. ';
+        
+        if ($dendaKeterlambatan > 0) {
+            $pesanInfo .= 'Kamu terlambat ' . $selisihHari . ' hari (Denda: Rp ' . number_format($dendaKeterlambatan, 0, ',', '.') . '). ';
+        }
+        if ($dendaTanpaStruk > 0) {
+            $pesanInfo .= 'Denda tambahan tanpa struk fisik: Rp 1.000. ';
+        }
+        
+        return back()->with('success', $pesanInfo . 'Silakan lihat tab Tagihan Denda untuk rincian pelunasan ya!');
+    }
+
+    return back()->with('success', 'Terima kasih! Buku "' . $buku->judul . '" berhasil dikembalikan tepat waktu. Akun kamu bebas dari denda ✨');
+}
 }
