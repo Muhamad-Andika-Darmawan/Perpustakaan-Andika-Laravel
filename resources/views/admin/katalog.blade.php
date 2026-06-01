@@ -214,12 +214,26 @@
             </table>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-4 p-3">
-            <small class="text-muted">Menampilkan {{ $bukus->firstItem() ?? 0 }} sampai {{ $bukus->lastItem() ?? 0 }} dari {{ $bukus->total() }} data</small>
-            <div>
-                {{ $bukus->links('pagination::bootstrap-5') }}
-            </div>
-        </div>
+        <nav class="mt-4 px-2">
+                <ul class="pagination justify-content-center">
+                    {{-- Tombol Prev --}}
+                    <li class="page-item {{ $bukus->currentPage() <= 1 ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $bukus->currentPage() - 1 }}&search={{ request('search') }}&kategori={{ request('kategori') }}">« Prev</a>
+                    </li>
+
+                    {{-- Looping Angka Halaman --}}
+                    @for ($i = 1; $i <= $bukus->lastPage(); $i++)
+                        <li class="page-item {{ $i == $bukus->currentPage() ? 'active' : '' }}">
+                            <a class="page-link" href="?page={{ $i }}&search={{ request('search') }}&kategori={{ request('kategori') }}">{{ $i }}</a>
+                        </li>
+                    @endfor
+
+                    {{-- Tombol Next --}}
+                    <li class="page-item {{ $bukus->currentPage() >= $bukus->lastPage() ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $bukus->currentPage() + 1 }}&search={{ request('search') }}&kategori={{ request('kategori') }}">Next »</a>
+                    </li>
+                </ul>
+            </nav>
     </div>
 </div>
 

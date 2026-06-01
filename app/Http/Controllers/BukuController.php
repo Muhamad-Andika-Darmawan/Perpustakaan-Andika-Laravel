@@ -33,7 +33,7 @@ class BukuController extends Controller
         }
 
         // Pagination 10 data per halaman sesuai flow
-        $bukus = Buku::with('kategori')->latest()->paginate(10);
+        $bukus = $query->latest()->paginate(10)->withQueryString();
         
         // Ambil semua data kategori untuk dropdown & list modal
         $kategoris = Kategori::all();

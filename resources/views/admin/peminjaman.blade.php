@@ -180,11 +180,26 @@
                 </tbody>
             </table>
         </div>
-        @if($peminjamans->hasPages())
-            <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center">
-                {{ $peminjamans->links() }}
-            </div>
-        @endif
+        <nav class="mt-4 px-2">
+                <ul class="pagination justify-content-center">
+                    {{-- Tombol Prev --}}
+                    <li class="page-item {{ $peminjamans->currentPage() <= 1 ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $peminjamans->currentPage() - 1 }}&search={{ request('search') }}&status={{ request('status') }}">« Prev</a>
+                    </li>
+
+                    {{-- Looping Angka Halaman --}}
+                    @for ($i = 1; $i <= $peminjamans->lastPage(); $i++)
+                        <li class="page-item {{ $i == $peminjamans->currentPage() ? 'active' : '' }}">
+                            <a class="page-link" href="?page={{ $i }}&search={{ request('search') }}&status={{ request('status') }}">{{ $i }}</a>
+                        </li>
+                    @endfor
+
+                    {{-- Tombol Next --}}
+                    <li class="page-item {{ $peminjamans->currentPage() >= $peminjamans->lastPage() ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $peminjamans->currentPage() + 1 }}&search={{ request('search') }}&status={{ request('status') }}">Next »</a>
+                    </li>
+                </ul>
+            </nav>
     </div>
 </div>
 

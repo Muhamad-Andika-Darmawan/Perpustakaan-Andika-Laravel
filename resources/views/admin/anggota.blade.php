@@ -175,12 +175,26 @@
             </table>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-4 p-3">
-            <small class="text-muted">Menampilkan {{ $users->firstItem() ?? 0 }} sampai {{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} data</small>
-            <div>
-                {{ $users->links('pagination::bootstrap-5') }}
-            </div>
-        </div>
+        <nav class="mt-4 px-2">
+                <ul class="pagination justify-content-center">
+                    {{-- Tombol Prev --}}
+                    <li class="page-item {{ $users->currentPage() <= 1 ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $users->currentPage() - 1 }}&search={{ $search }}">« Prev</a>
+                    </li>
+
+                    {{-- Looping Angka Halaman --}}
+                    @for ($i = 1; $i <= $users->lastPage(); $i++)
+                        <li class="page-item {{ $i == $users->currentPage() ? 'active' : '' }}">
+                            <a class="page-link" href="?page={{ $i }}&search={{ $search }}">{{ $i }}</a>
+                        </li>
+                    @endfor
+
+                    {{-- Tombol Next --}}
+                    <li class="page-item {{ $users->currentPage() >= $users->lastPage() ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $users->currentPage() + 1 }}&search={{ $search }}">Next »</a>
+                    </li>
+                </ul>
+            </nav>
     </div>
 </div>
 

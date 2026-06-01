@@ -134,11 +134,26 @@
                 </tbody>
             </table>
         </div>
-        @if($dendas->hasPages())
-            <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center">
-                {{ $dendas->links() }}
-            </div>
-        @endif
+        <nav class="mt-4 px-2">
+                <ul class="pagination justify-content-center">
+                    {{-- Tombol Prev --}}
+                    <li class="page-item {{ $dendas->currentPage() <= 1 ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $dendas->currentPage() - 1 }}&search={{ request('search') }}">« Prev</a>
+                    </li>
+
+                    {{-- Looping Angka Halaman --}}
+                    @for ($i = 1; $i <= $dendas->lastPage(); $i++)
+                        <li class="page-item {{ $i == $dendas->currentPage() ? 'active' : '' }}">
+                            <a class="page-link" href="?page={{ $i }}&search={{ request('search') }}">{{ $i }}</a>
+                        </li>
+                    @endfor
+
+                    {{-- Tombol Next --}}
+                    <li class="page-item {{ $dendas->currentPage() >= $dendas->lastPage() ? 'disabled' : '' }}">
+                        <a class="page-link" href="?page={{ $dendas->currentPage() + 1 }}&search={{ request('search') }}">Next »</a>
+                    </li>
+                </ul>
+            </nav>
     </div>
 </div>
 
