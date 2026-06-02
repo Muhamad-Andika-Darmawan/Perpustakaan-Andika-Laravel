@@ -38,12 +38,18 @@ class AnggotaController extends Controller
                                         ->get();
 
         // 5. Mengambil Koleksi Buku Terpopuler berdasarkan jumlah peminjaman terbanyak
-        $bukuTerpopuler = Buku::select('bukus.*', DB::raw('COUNT(peminjamans.id) as total_dipinjam'))
-                                ->join('peminjamans', 'bukus.id', '=', 'peminjamans.buku_id')
-                                ->groupBy('bukus.id')
-                                ->orderBy('total_dipinjam', 'desc')
-                                ->limit(6) // Kita ambil 6 buku teratas untuk carousel agar bisa digeser
-                                ->get();
+        $bukuTerpopuler = Buku::with('kategori')
+            ->withCount(['peminjamans as total_dipinjam' => function($query) {
+                // Hanya hitung status transaksi yang sah (kembali atau sedang dipinjam)
+                $query->whereIn('status', ['kembali', 'dipinjam']);
+            }])
+            // MENGUNCI FILTER: Buku wajib minimal memiliki 1 histori transaksi valid (bukan ditolak/menunggu)
+            ->whereHas('peminjamans', function($query) {
+                $query->whereIn('status', ['kembali', 'dipinjam']);
+            })
+            ->orderBy('total_dipinjam', 'desc')
+            ->take(10) // Ambil 10 data buku terpopuler teratas
+            ->get();
 
         return view('admin.dashboard', compact(
             'totalBuku', 

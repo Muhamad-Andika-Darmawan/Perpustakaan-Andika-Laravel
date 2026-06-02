@@ -286,13 +286,18 @@ class PeminjamanController extends Controller
         // 4. List pinjaman aktif siswa untuk unduh struk
         $pinjamanAktif = Peminjaman::where('user_id', $userId)->whereIn('status', ['menunggu', 'dipinjam'])->get();
 
-        // 5. Query rekomendasi buku terpopuler (diambil dari buku yang paling banyak dipinjam)
-        $bukuTerpopuler = \App\Models\Buku::with('kategori')
+        // 5. Query rekomendasi buku terpopuler (SINKRONISASI & VALIDASI MINIMAL 1X DIPINJAM)
+        $bukuTerpopuler = Buku::with('kategori')
             ->withCount(['peminjamans as total_dipinjam' => function($query) {
-                $query->where('status', 'kembali')->orWhere('status', 'dipinjam');
+                // Hanya hitung status transaksi yang valid
+                $query->whereIn('status', ['kembali', 'dipinjam']);
             }])
+            // PERBAIKAN UTAMA: Menggunakan whereHas untuk mengunci status relasi yang sah
+            ->whereHas('peminjamans', function($query) {
+                $query->whereIn('status', ['kembali', 'dipinjam']);
+            })
             ->orderBy('total_dipinjam', 'desc')
-            ->take(12)
+            ->take(10)
             ->get();
 
         return view('anggota.dashboard', compact('totalDipinjam', 'totalDenda', 'totalDibaca', 'pinjamanAktif', 'bukuTerpopuler'));
