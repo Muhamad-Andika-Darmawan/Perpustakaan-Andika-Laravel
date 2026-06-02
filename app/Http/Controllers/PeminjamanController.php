@@ -92,13 +92,19 @@ class PeminjamanController extends Controller
         if (auth()->user()->role !== 'anggota') {
             abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
         }
-        $buku_populer = Buku::withCount(['peminjamans as total_dipinjam' => function($query) {
-                $query->whereIn('status', ['dipinjam', 'kembali']);
+        $buku_populer = Buku::with('kategori')
+            ->withCount(['peminjamans as total_dipinjam' => function($query) {
+                $query->whereIn('status', ['kembali', 'dipinjam']);
             }])
+            // KUNCI: Hanya ambil buku yang memiliki minimal 1 transaksi valid
+            ->whereHas('peminjamans', function($query) {
+                $query->whereIn('status', ['kembali', 'dipinjam']);
+            })
             ->orderBy('total_dipinjam', 'desc')
-            ->take(10)
+            ->take(10) // Kuota maksimal top 10 besar
             ->get();
 
+        // Menggunakan view yang sama sesuai arsitektur web.php kamu
         return view('admin.laporan.terpopuler', compact('buku_populer'));
     }
 

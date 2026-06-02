@@ -66,19 +66,23 @@ class LaporanController extends Controller
     }
 
     // 2. Halaman Buku Terpopuler (Paling sering dipinjam)
-    // 2. Halaman Buku Terpopuler (Paling sering dipinjam)
     public function terpopuler()
     {
         if (auth()->user()->role !== 'admin') {
-        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
-    }
-        // PERBAIKAN LOGIKA: Ditambahkan filter status agar hanya menghitung yang VALID (dipinjam & kembali)
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        // PERBAIKAN LOGIKA TOTAL: Kunci status valid & saring agar buku 0x dipinjam tidak masuk list
         $buku_populer = Buku::with('kategori')
             ->withCount(['peminjamans as total_dipinjam' => function($query) {
-                $query->whereIn('status', ['dipinjam', 'kembali']);
+                $query->whereIn('status', ['kembali', 'dipinjam']);
             }])
+            // KUNCI: Hanya ambil buku yang memiliki minimal 1 transaksi valid
+            ->whereHas('peminjamans', function($query) {
+                $query->whereIn('status', ['kembali', 'dipinjam']);
+            })
             ->orderBy('total_dipinjam', 'desc')
-            ->take(10)
+            ->take(10) // Kuota maksimal top 10 besar
             ->get();
 
         return view('admin.laporan.terpopuler', compact('buku_populer'));
