@@ -105,34 +105,59 @@
                     </thead>
                     <tbody>
                         @forelse($laporan as $index => $l)
-                        <tr>
-                            <td class="text-center px-4 fw-semibold text-secondary">{{ $index + 1 }}</td>
-                            <td>
-                                <div class="fw-bold" style="color: #1e293b;">{{ $l->user->nama_lengkap }}</div>
-                                <small class="text-muted">NISN: {{ $l->user->nisn ?? '-' }} | Kelas: {{ $l->user->kelas }}</small>
+                        <tr style="border-bottom: 1px solid #f1f5f9; vertical-align: middle;">
+                            <td class="text-center px-4 text-muted font-monospace">{{ $index + 1 }}</td>
+                            <td class="px-4">
+                                <div class="fw-semibold text-slate-800">{{ $l->user->nama_lengkap ?? 'Anggota Dihapus' }}</div>
+                                <small class="text-muted">NISN: {{ $l->user->nisn ?? '-' }}</small>
                             </td>
-                            <td class="fw-semibold" style="color: #334155; max-width: 250px;">{{ $l->buku->judul }}</td>
-                            <td class="text-center">
-                                <span class="small fw-medium">{{ $l->tgl_pengajuan ? \Carbon\Carbon::parse($l->tgl_pengajuan)->format('d/m/Y') : 'Belum Di-ACC' }}</span>
+                            <td class="px-4 text-truncate" style="max-width: 220px;">
+                                <div class="fw-medium text-slate-700" title="{{ $l->buku->judul ?? 'Buku Dihapus' }}">{{ $l->buku->judul ?? 'Buku Dihapus' }}</div>
+                                <small class="text-muted">Penulis: {{ $l->buku->penulis ?? '-' }}</small>
                             </td>
-                            <td class="text-center">
-                                @if($l->tgl_pengembalian)
-                                    <span class="small text-success fw-semibold"><i class="bi bi-calendar-check me-1"></i>{{ \Carbon\Carbon::parse($l->tgl_pengembalian)->format('d/m/Y') }}</span>
-                                @else
-                                    <span class="small text-danger fw-semibold"><i class="bi bi-calendar-x me-1"></i>{{ \Carbon\Carbon::parse($l->tgl_kembali_seharusnya)->format('d/m/Y') }}</span>
+                            <td class="px-4 text-muted">
+                                {{ \Carbon\Carbon::parse($l->tgl_peminjaman)->translatedFormat('d M Y') }}
+                            </td>
+                            <td class="px-4 text-muted">
+                                {{ \Carbon\Carbon::parse($l->tgl_kembali_seharusnya)->translatedFormat('d M Y') }}
+                            </td>
+                            <td class="px-4">
+                                {{-- LOGIKA BADGE STATUS INTERAKTIF KHUSUS LAPORAN --}}
+                                @if($l->status === 'menunggu')
+                                    <span class="badge bg-warning px-2 py-1.5" style="border-radius: 6px;">Menunggu Konfirmasi</span>
+                                @elseif($l->status === 'ditolak')
+                                    <span class="badge bg-danger px-2 py-1.5" style="border-radius: 6px;">Ditolak</span>
+                                @elseif($l->status === 'dipinjam')
+                                    <span class="badge bg-primary px-2 py-1.5" style="border-radius: 6px;">Sedang Dipinjam</span>
+                                @elseif($l->status === 'kembali')
+                                    {{-- Jika status kembali tapi dia punya denda historis dan total_denda di DB sudah 0, berarti Lunas --}}
+                                    @if(isset($l->denda_historis) && $l->denda_historis > 0 && $l->total_denda == 0)
+                                        <span class="badge bg-success px-2 py-1.5" style="border-radius: 6px;"><i class="bi bi-check-circle-fill me-1"></i> Selesai (Denda Lunas)</span>
+                                    @elseif($l->total_denda > 0)
+                                        <span class="badge bg-danger px-2 py-1.5" style="border-radius: 6px;"><i class="bi bi-exclamation-triangle-fill me-1"></i> Belum Bayar Denda</span>
+                                    @else
+                                        <span class="badge bg-success px-2 py-1.5" style="border-radius: 6px;">Selesai</span>
+                                    @endif
                                 @endif
                             </td>
-                            <td class="text-center">
-                                @if($l->status == 'menunggu')
-                                    <span class="badge bg-warning text-dark px-2 py-1.5" style="border-radius: 6px;">Menunggu ACC</span>
-                                @elseif($l->status == 'dipinjam')
-                                    <span class="badge bg-info text-white px-2 py-1.5" style="border-radius: 6px;">Dipinjam</span>
+                            <td class="text-end px-4 fw-bold">
+                                {{-- LOGIKA MENAMPILKAN NOMINAL DENDA DI LAPORAN --}}
+                                @if(isset($l->denda_historis) && $l->denda_historis > 0)
+                                    @if($l->total_denda == 0)
+                                        {{-- Tampilan kalau sudah dilunasi admin --}}
+                                        <span class="text-success" style="font-size: 13px; display: block; fw-normal;">Lunas</span>
+                                        <span class="text-muted text-decoration-line-through" style="font-size: 11px; font-weight: normal;">
+                                            Rp {{ number_format($l->denda_historis, 0, ',', '.') }}
+                                        </span>
+                                    @else
+                                        {{-- Tampilan kalau denda masih menunggak aktif --}}
+                                        <span class="text-danger">
+                                            Rp {{ number_format($l->total_denda, 0, ',', '.') }}
+                                        </span>
+                                    @endif
                                 @else
-                                    <span class="badge bg-success px-2 py-1.5" style="border-radius: 6px;">Selesai</span>
+                                    <span class="text-muted">-</span>
                                 @endif
-                            </td>
-                            <td class="text-end px-4 fw-bold {{ $l->total_denda > 0 ? 'text-danger' : 'text-muted' }}">
-                                {{ $l->total_denda > 0 ? 'Rp ' . number_format($l->total_denda, 0, ',', '.') : '-' }}
                             </td>
                         </tr>
                         @empty

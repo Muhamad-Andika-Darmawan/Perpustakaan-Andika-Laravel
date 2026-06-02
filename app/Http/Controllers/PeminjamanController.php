@@ -252,35 +252,51 @@ class PeminjamanController extends Controller
     }
 
     public function dashboardAnggota()
-{
-    if (auth()->user()->role !== 'anggota') {
+    {
+        if (auth()->user()->role !== 'anggota') {
             abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
         }
-    $userId = auth()->id();
+        $userId = auth()->id();
 
-    // 1. Buku yang sedang dipinjam (status = dipinjam)
-    $totalDipinjam = Peminjaman::where('user_id', $userId)->where('status', 'dipinjam')->count();
+        // 1. Buku yang sedang dipinjam (status = dipinjam)
+        $totalDipinjam = Peminjaman::where('user_id', $userId)->where('status', 'dipinjam')->count();
 
-    // 2. Mengambil akumulasi denda bersih dari database baru
-    $totalDenda = Peminjaman::where('user_id', $userId)->sum('total_denda');
+        // 2. Mengambil akumulasi denda yang sudah final terdata di database
+        $dendaFinal = Peminjaman::where('user_id', $userId)->sum('total_denda');
 
-    // 3. Buku yang sudah selesai dibaca (status = kembali)
-    $totalDibaca = Peminjaman::where('user_id', $userId)->where('status', 'kembali')->count();
+        // Tambahan Logika: Hitung denda berjalan secara real-time untuk buku yang belum dikembalikan tapi sudah telat
+        $dendaBerjalan = 0;
+        $peminjamanAktifTelat = Peminjaman::where('user_id', $userId)
+            ->where('status', 'dipinjam')
+            ->where('tgl_kembali_seharusnya', '<', Carbon::today()->toDateString())
+            ->get();
 
-    // 4. List pinjaman aktif siswa untuk unduh struk
-    $pinjamanAktif = Peminjaman::where('user_id', $userId)->whereIn('status', ['menunggu', 'dipinjam'])->get();
+        foreach ($peminjamanAktifTelat as $pinjam) {
+            $hariIni = Carbon::today();
+            $batas = Carbon::parse($pinjam->tgl_kembali_seharusnya)->startOfDay();
+            $selisih = $hariIni->diffInDays($batas, true);
+            $dendaBerjalan += ($selisih * 1000);
+        }
 
-    // 5. Query rekomendasi buku terpopuler (diambil dari buku yang paling banyak dipinjam)
-    $bukuTerpopuler = \App\Models\Buku::with('kategori')
-        ->withCount(['peminjamans as total_dipinjam' => function($query) {
-            $query->where('status', 'kembali')->orWhere('status', 'dipinjam');
-        }])
-        ->orderBy('total_dipinjam', 'desc')
-        ->take(12)
-        ->get();
+        $totalDenda = $dendaFinal + $dendaBerjalan;
 
-    return view('anggota.dashboard', compact('totalDipinjam', 'totalDenda', 'totalDibaca', 'pinjamanAktif', 'bukuTerpopuler'));
-}
+        // 3. Buku yang sudah selesai dibaca (status = kembali)
+        $totalDibaca = Peminjaman::where('user_id', $userId)->where('status', 'kembali')->count();
+
+        // 4. List pinjaman aktif siswa untuk unduh struk
+        $pinjamanAktif = Peminjaman::where('user_id', $userId)->whereIn('status', ['menunggu', 'dipinjam'])->get();
+
+        // 5. Query rekomendasi buku terpopuler (diambil dari buku yang paling banyak dipinjam)
+        $bukuTerpopuler = \App\Models\Buku::with('kategori')
+            ->withCount(['peminjamans as total_dipinjam' => function($query) {
+                $query->where('status', 'kembali')->orWhere('status', 'dipinjam');
+            }])
+            ->orderBy('total_dipinjam', 'desc')
+            ->take(12)
+            ->get();
+
+        return view('anggota.dashboard', compact('totalDipinjam', 'totalDenda', 'totalDibaca', 'pinjamanAktif', 'bukuTerpopuler'));
+    }
 
     /**
      * Alur Pengembalian Buku Mandiri oleh Siswa + Kalkulasi Denda Flat Otomatis
@@ -296,14 +312,15 @@ class PeminjamanController extends Controller
 
         // 1. Ambil Tanggal Murni Hari Ini & Batas Kembali Seharusnya
         $hariIni = Carbon::today();
-        $batasKembali = Carbon::createFromFormat('Y-m-d', $peminjaman->tgl_kembali_seharusnya)->startOfDay();
+        $batasKembali = Carbon::parse($peminjaman->tgl_kembali_seharusnya)->startOfDay();
         
         $dendaKeterlambatan = 0;
         $selisihHari = 0;
 
         // Hitung denda keterlambatan jika melewati batas (Flat Rp 1.000 per hari)
         if ($hariIni->gt($batasKembali)) {
-            $selisihHari = $hariIni->diffInDays($batasKembali);
+            // FIX: Gunakan parameter true pada diffInDays untuk menghasilkan nilai absolut/positif
+            $selisihHari = $hariIni->diffInDays($batasKembali, true);
             $dendaKeterlambatan = $selisihHari * 1000;
         }
 

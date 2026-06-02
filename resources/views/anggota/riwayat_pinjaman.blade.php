@@ -24,9 +24,6 @@
             <h4 class="fw-bold m-0" style="color: #0b1b35;">Aktivitas Peminjaman Saya</h4>
             <p class="text-muted small m-0">Pantau status pengajuan, buku aktif, dan riwayat transaksi kamu.</p>
         </div>
-        <span class="badge bg-dark px-3 py-2" style="border-radius: 8px;">
-            <i class="bi bi-clock-history me-1"></i> Mode Anggota
-        </span>
     </div>
 
     <div class="card border-0 shadow-sm mb-4 d-inline-block" style="border-radius: 15px;">
