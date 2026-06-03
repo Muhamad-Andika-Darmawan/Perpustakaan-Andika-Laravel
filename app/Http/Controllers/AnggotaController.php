@@ -18,6 +18,7 @@ class AnggotaController extends Controller
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
+        
         // 1. Data statistik dasar
         $totalBuku = Buku::count();
         $totalAnggota = User::where('role', 'anggota')->count();
@@ -25,38 +26,51 @@ class AnggotaController extends Controller
         // 2. Menghitung Buku Dipinjam Aktif (status = dipinjam)
         $bukuDipinjamAktif = Peminjaman::where('status', 'dipinjam')->count();
         
-        // 3. Menghitung Buku Terlambat Dikembalikan
-        $hariIni = Carbon::today()->toDateString();
-        $terlambatKembali = Peminjaman::where('status', 'dipinjam')
-                                        ->where('tgl_kembali_seharusnya', '<', $hariIni)
-                                        ->count();
+        // 3. REVISI GURU: Menghitung Total Nominal Denda yang Sedang Berjalan (Aktif)
+        $hariIni = Carbon::today();
+        $peminjamanTerlambat = Peminjaman::where('status', 'dipinjam')
+                                        ->where('tgl_kembali_seharusnya', '<', $hariIni->toDateString())
+                                        ->get();
+
+        $totalDendaBerjalan = 0;
+        foreach ($peminjamanTerlambat as $p) {
+            $targetKembali = Carbon::parse($p->tgl_kembali_seharusnya);
+            
+            // Hitung selisih hari murni dari tanggal seharusnya sampai hari ini
+            $selisihHari = $targetKembali->diffInDays($hariIni);
+            
+            // MENYUTIKKAN DENDA KETERLAMBATAN MURNI (Rp 1.000 / Hari)
+            $dendaKeterlambatan = $selisihHari * 1000;
+            
+            // Akumulasi (Denda struk dihapus agar simulasi pas Rp 3.000)
+            $totalDendaBerjalan += $dendaKeterlambatan;
+        }
 
         // 4. Mengambil 5 Transaksi Peminjaman Terbaru beserta relasinya
         $peminjamanTerbaru = Peminjaman::with(['user', 'buku'])
-                                        ->orderBy('created_at', 'desc')
-                                        ->limit(5)
+                                        ->orderBy('id', 'desc')
+                                        ->take(5)
                                         ->get();
 
-        // 5. Mengambil Koleksi Buku Terpopuler berdasarkan jumlah peminjaman terbanyak
+        // 5. REVISI GURU: Carousel buku terpopuler dibatasi jadi 5 saja (take(5))
         $bukuTerpopuler = Buku::with('kategori')
             ->withCount(['peminjamans as total_dipinjam' => function($query) {
-                // Hanya hitung status transaksi yang sah (kembali atau sedang dipinjam)
                 $query->whereIn('status', ['kembali', 'dipinjam']);
             }])
-            // MENGUNCI FILTER: Buku wajib minimal memiliki 1 histori transaksi valid (bukan ditolak/menunggu)
             ->whereHas('peminjamans', function($query) {
                 $query->whereIn('status', ['kembali', 'dipinjam']);
             })
             ->orderBy('total_dipinjam', 'desc')
-            ->take(10) // Ambil 10 data buku terpopuler teratas
+            ->take(5) // Berubah dari 10 ke 5
             ->get();
 
+        // Oper variabel baru ke view dashboard admin
         return view('admin.dashboard', compact(
             'totalBuku', 
             'totalAnggota', 
             'bukuDipinjamAktif', 
-            'terlambatKembali', 
-            'peminjamanTerbaru',
+            'totalDendaBerjalan', // Variabel baru
+            'peminjamanTerbaru', 
             'bukuTerpopuler'
         ));
     }

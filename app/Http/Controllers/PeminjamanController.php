@@ -92,20 +92,18 @@ class PeminjamanController extends Controller
         if (auth()->user()->role !== 'anggota') {
             abort(403, 'Halaman ini khusus untuk Anggota/Siswa.');
         }
-        $buku_populer = Buku::with('kategori')
+
+        // Mengambil data buku terpopuler dan membatasi murni maksimal 5 data
+        $bukuTerpopuler = Buku::with('kategori')
             ->withCount(['peminjamans as total_dipinjam' => function($query) {
-                $query->whereIn('status', ['kembali', 'dipinjam']);
+                $query->whereIn('status', ['dipinjam', 'kembali']);
             }])
-            // KUNCI: Hanya ambil buku yang memiliki minimal 1 transaksi valid
-            ->whereHas('peminjamans', function($query) {
-                $query->whereIn('status', ['kembali', 'dipinjam']);
-            })
             ->orderBy('total_dipinjam', 'desc')
-            ->take(10) // Kuota maksimal top 10 besar
+            ->take(5)
             ->get();
 
-        // Menggunakan view yang sama sesuai arsitektur web.php kamu
-        return view('admin.laporan.terpopuler', compact('buku_populer'));
+        // REVISI: Mengembalikan ke view dashboard anggota dengan membawa variabel $bukuTerpopuler yang serasi
+        return view('anggota.dashboard', compact('bukuTerpopuler'));
     }
 
     // =========================================================================
@@ -295,15 +293,10 @@ class PeminjamanController extends Controller
         // 5. Query rekomendasi buku terpopuler (SINKRONISASI & VALIDASI MINIMAL 1X DIPINJAM)
         $bukuTerpopuler = Buku::with('kategori')
             ->withCount(['peminjamans as total_dipinjam' => function($query) {
-                // Hanya hitung status transaksi yang valid
-                $query->whereIn('status', ['kembali', 'dipinjam']);
+                $query->whereIn('status', ['dipinjam', 'kembali']);
             }])
-            // PERBAIKAN UTAMA: Menggunakan whereHas untuk mengunci status relasi yang sah
-            ->whereHas('peminjamans', function($query) {
-                $query->whereIn('status', ['kembali', 'dipinjam']);
-            })
             ->orderBy('total_dipinjam', 'desc')
-            ->take(10)
+            ->take(5)
             ->get();
 
         return view('anggota.dashboard', compact('totalDipinjam', 'totalDenda', 'totalDibaca', 'pinjamanAktif', 'bukuTerpopuler'));

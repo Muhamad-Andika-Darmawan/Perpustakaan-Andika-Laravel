@@ -163,79 +163,56 @@
     </div>
 
     <!-- CAROUSEL BUKU TERPOPULER (100% CLONE DARI DASHBOARD ADMIN / GAMBAR 3) -->
-    <div class="row g-3">
+    <div class="row g-3 mt-2">
         <div class="col-12">
             <div class="custom-card position-relative px-4 py-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-fire text-danger me-2"></i>Koleksi Buku Terpopuler</h5>
+                <h5 class="fw-bold mb-4"><i class="bi bi-fire text-danger me-2"></i>5 Koleksi Buku Terpopuler</h5>
                 
                 @if($bukuTerpopuler->isEmpty())
                 <div class="p-5 text-center bg-light rounded-4 border border-dashed">
                     <i class="bi bi-images text-muted opacity-50 mb-2" style="font-size: 2.5rem;"></i>
-                    <p class="text-muted mb-0 small">Belum ada data buku terpopuler. Data akan muncul setelah ada buku yang dipinjam.</p>
+                    <p class="text-muted mb-0 small">Belum ada data sirkulasi buku terpopuler saat ini.</p>
                 </div>
                 @else
-                <div id="carouselBukuTerpopuler" class="carousel slide px-4" data-bs-ride="carousel">
-                    <div class="carousel-inner">
-                        @foreach($bukuTerpopuler->chunk(5) as $key => $chunkedBuku)
-                        <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
-                            <div class="row justify-content-start g-3">
-                                @foreach($chunkedBuku as $buku)
-                                <div class="col-custom-5 mb-2">
-                                    <div class="book-card-carousel position-relative">
-                                        <!-- Badge Kategori Ukuran Compact -->
-                                        <span class="badge-kategori-carousel">
-                                            {{ $buku->kategori->nama_kategori ?? 'Umum' }}
-                                        </span>
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3">
+                    @foreach($bukuTerpopuler as $buku)
+                    <div class="col">
+                        <div class="book-card-carousel position-relative h-100">
+                            <span class="badge-kategori-carousel">
+                                {{ $buku->kategori->nama_kategori ?? 'Umum' }}
+                            </span>
 
-                                        <!-- Wrapper Cover Rasio 4:5 -->
-                                        <div class="cover-wrapper-carousel">
-                                            @if($buku->cover)
-                                                <img src="{{ asset('storage/covers/' . $buku->cover) }}" class="book-cover-carousel" alt="Cover Buku">
-                                            @else
-                                                <div class="book-cover-carousel d-flex flex-column align-items-center justify-content-center bg-light text-muted">
-                                                    <i class="bi bi-book opacity-25 fs-2"></i>
-                                                    <span class="small opacity-50 fw-bold mt-1" style="font-size: 9px;">NO COVER</span>
-                                                </div>
-                                            @endif
-                                        </div>
+                            <div class="cover-wrapper-carousel">
+                                @if($buku->cover)
+                                    <img src="{{ asset('storage/covers/' . $buku->cover) }}" class="book-cover-carousel" alt="Cover Buku">
+                                @else
+                                    <div class="book-cover-carousel d-flex flex-column align-items-center justify-content-center bg-light text-muted">
+                                        <i class="bi bi-book opacity-25 fs-2"></i>
+                                        <span class="small opacity-50 fw-bold mt-1" style="font-size: 9px;">NO COVER</span>
+                                    </div>
+                                @endif
+                            </div>
 
-                                        <!-- Detail Teks -->
-                                        <div class="flex-grow-1 d-flex flex-column" style="padding: 12px !important;">
-                                            <h6 class="fw-bold mb-0 text-truncate" style="font-size: 13px;" title="{{ $buku->judul }}">{{ $buku->judul }}</h6>
-                                            <p class="text-muted mb-1 text-truncate" style="font-size: 11px;">{{ $buku->penulis }}</p>
-                                            
-                                            <!-- Info Ketersediaan Stok Mini -->
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <div class="fw-semibold {{ $buku->stok > 0 ? 'text-success' : 'text-danger' }}" style="font-size: 10.5px;">
-                                                    <i class="bi {{ $buku->stok > 0 ? 'bi-check-circle' : 'bi-x-circle' }} me-1"></i>
-                                                    {{ $buku->stok > 0 ? 'Tersedia: ' . $buku->stok : 'Habis' }}
-                                                </div>
-                                            </div>
-
-                                            <!-- Tombol Status Mini -->
-                                            <div class="mt-auto">
-                                                <div class="text-center fw-bold" style="background-color: #ffc107; border-radius: 8px; font-size: 11px; padding: 6px 0;">
-                                                    <i class="bi bi-heart-fill text-danger me-1" style="font-size: 9px;"></i> {{ $buku->total_dipinjam }}x Dipinjam
-                                                </div>
-                                            </div>
-                                        </div>
+                            <div class="flex-grow-1 d-flex flex-column" style="padding: 12px !important;">
+                                <h6 class="fw-bold mb-0 text-truncate" style="font-size: 13px;" title="{{ $buku->judul }}">{{ $buku->judul }}</h6>
+                                <p class="text-muted mb-1 text-truncate" style="font-size: 11px;">{{ $buku->penulis }}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="fw-semibold {{ $buku->stok > 0 ? 'text-success' : 'text-danger' }}" style="font-size: 10.5px;">
+                                        <i class="bi {{ $buku->stok > 0 ? 'bi-check-circle' : 'bi-x-circle' }} me-1"></i>
+                                        {{ $buku->stok > 0 ? 'Tersedia: ' . $buku->stok : 'Habis' }}
                                     </div>
                                 </div>
-                                @endforeach
+
+                                <div class="mt-auto">
+                                    <div class="text-center fw-bold text-dark" style="background-color: #ffc107; border-radius: 8px; font-size: 11px; padding: 6px 0;">
+                                        <i class="bi bi-heart-fill text-danger me-1" style="font-size: 9px;"></i> {{ $buku->total_dipinjam }}x Dipinjam
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        @endforeach
                     </div>
-
-                    <!-- Navigator Slider di Sisi Luar Kiri & Kanan Card -->
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselBukuTerpopuler" data-bs-slide="prev" style="width: 35px; left: 0;">
-                        <span class="bi bi-arrow-left-circle-fill text-secondary" style="font-size: 1.8rem;" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselBukuTerpopuler" data-bs-slide="next" style="width: 35px; right: 0;">
-                        <span class="bi bi-arrow-right-circle-fill text-secondary" style="font-size: 1.8rem;" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
+                    @endforeach
                 </div>
                 @endif
 
