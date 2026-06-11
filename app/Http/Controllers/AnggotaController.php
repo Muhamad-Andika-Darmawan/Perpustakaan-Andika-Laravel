@@ -192,15 +192,28 @@ class AnggotaController extends Controller
     {
         $user = User::findOrFail($id);
         
-        // Cegah admin menghapus dirinya sendiri secara tidak sengaja
+        // 1. Cegah admin menghapus dirinya sendiri secara tidak sengaja
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.anggota')->with('error', 'Anda tidak bisa menghapus akun Anda sendiri dari halaman ini!');
         }
 
+        // 2. LOGIKA HASIL DISKUSI: Cek apakah ada buku fisik yang benar-benar sedang dibawa (status = dipinjam)
+        // Status 'menunggu' diabaikan (tetap boleh dihapus) karena buku belum diambil oleh siswa.
+        $adaPinjamanAktif = Peminjaman::where('user_id', $user->id)
+                                      ->where('status', 'dipinjam')
+                                      ->exists();
+
+        // Jika terbukti masih membawa buku, proses di-stop dan kirim alert error
+        if ($adaPinjamanAktif) {
+            return redirect()->route('admin.anggota')->with('error', 'Gagal menghapus! Anggota bernama "' . $user->nama_lengkap . '" masih memiliki buku yang sedang dipinjam.');
+        }
+
+        // 3. Hapus foto profil dari storage jika ada
         if ($user->foto_profil && Storage::exists('public/profil/' . $user->foto_profil)) {
             Storage::delete('public/profil/' . $user->foto_profil);
         }
 
+        // 4. Eksekusi hapus data dari database
         $user->delete();
 
         return redirect()->route('admin.anggota')->with('success', 'Akun user/anggota berhasil dihapus!');
